@@ -1,6 +1,7 @@
 import asyncio
 from .globals import current_broker
 from .ctx import InstanceContext
+from .message import Message
 
 
 class BaseEventHandler(InstanceContext):
@@ -31,9 +32,6 @@ class NoopEventHandler(BaseEventHandler):
             await asyncio.sleep(0.1)
 
     def parse_message(self, content):
-        return {
-            'app_id': self.app_id,
-            'content': content,
-        }
+        return Message(app_id=self.app_id, content=content)
 
 

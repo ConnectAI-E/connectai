@@ -1,4 +1,6 @@
+import logging
 import asyncio
+from inspect import iscoroutinefunction
 from .globals import current_broker, current_instance, _cv_broker, bot
 from .ctx import InstanceContext, BrokerContext, MessageContext
 
@@ -29,27 +31,32 @@ class BaseBroker(InstanceContext):
     async def _launch_consumer(self, typ):
         async def worker(queue):
             while True:
-                message = await queue.get()
-                ctx = self.message_context(message)
+                m = await queue.get()
+                ctx = self.message_context(m)
                 error = None
                 try:
                     try:
                         ctx.push()
-                        if 'bot' == typ:
-                            result = bot.run(message)
-                            if result:
-                                message.update(result=result)
-                                self.message_queue.put_nowait(message)
+                        func = bot.run if 'bot' == typ else bot.send
+                        # print('consumer', bot, typ, func, iscoroutinefunction(func))
+                        if iscoroutinefunction(func):
+                            result = await func(m)
                         else:
-                            bot.send(message)
+                            result = func(m)
+                        print('result', func, result, typ)
+                        if result and 'bot' == typ:
+                            m.update(result=result)
+                            current_broker.message_queue.put_nowait(m)
                     except Exception as e:
+                        logging.exception(e)
                         error = e
-                except:  # noqa: B001
+                except Exception as e:  # noqa: B001
+                    logging.exception(e)
                     error = sys.exc_info()[1]
                     raise
                 finally:
-                    ctx.pop(error)
                     queue.task_done()
+                    ctx.pop(error)
 
         queue = self.bot_queue if 'bot' == typ else self.message_queue
         asyncio.get_event_loop().create_task(worker(queue))
@@ -77,7 +84,7 @@ class AsyncQueueBroker(BaseBroker):
             await event.start()
 
     def get_bot(self, m):
-        return self.bots[m['app_id']] if m['app_id'] in self.bots else None
+        return self.bots[m.app_id] if m.app_id in self.bots else None
 
     def register_bot(self, bot):
         self.bots[bot.app_id] = bot

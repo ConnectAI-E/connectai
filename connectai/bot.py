@@ -1,3 +1,4 @@
+import asyncio
 from .globals import current_broker
 from .ctx import InstanceContext
 
@@ -13,13 +14,13 @@ class BaseBot(InstanceContext):
 
 class FeishuChatBot(BaseBot):
 
-    def run(self, message):
+    async def run(self, message):
         print('FeishuChatBot.run', message)
+        await asyncio.sleep(0.1)
         return 'reply ' + message['content']
 
     def send(self, message):
         print('FeishuChatBot.send', message)
-        return 'reply ' + message['content']
 
 
 
