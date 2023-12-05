@@ -12,7 +12,14 @@ class BaseBot(InstanceContext):
 
 
 class FeishuChatBot(BaseBot):
-    pass
+
+    def run(self, message):
+        print('FeishuChatBot.run', message)
+        return 'reply ' + message['content']
+
+    def send(self, message):
+        print('FeishuChatBot.send', message)
+        return 'reply ' + message['content']
 
 
 
