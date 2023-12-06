@@ -8,15 +8,17 @@ def reply_text2(message):
     return 'reply2 ' + message['content']
 
 with ca.MessageBroker() as broker:
-    ca.NoopEventHandler(1)
-    with ca.FeishuChatBot(app_id=1) as bot:
+    # ca.NoopEventHandler('app1')
+    ca.FeishuCallbackHandler('app1')
+    with ca.FeishuChatBot(app_id='app1') as bot:
         # 支持一个event多个回调函数
         bot.send_text(reply_text2)
         pass
-    with ca.FeishuChatBot(app_id=2) as bot:
+    with ca.FeishuChatBot(app_id='app2') as bot:
         pass
 
 
 if __name__ == "__main__":
+    print(id(broker_ctx))
     broker.launch()
 

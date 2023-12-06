@@ -1,7 +1,7 @@
 import logging
+import queue
 import asyncio
 from functools import partial
-from inspect import iscoroutinefunction
 from .globals import current_broker, current_instance, _cv_broker, bot
 from .ctx import InstanceContext, BrokerContext, MessageContext
 
@@ -31,17 +31,17 @@ class BaseBroker(InstanceContext):
         return self._launch_consumer('message')
 
     def _launch_consumer(self, typ):
-        async def worker(queue):
+        def worker(queue):
             while True:
-                app_id, m = await queue.get()
+                app_id, m = queue.get()
                 ctx = self.message_context(app_id, m)
                 error = None
                 try:
                     try:
                         ctx.push()
                         func = bot.run if 'bot' == typ else bot.send
-                        if iscoroutinefunction(func):
-                            result = await func(m)
+                        if asyncio.iscoroutinefunction(func):
+                            result = asyncio.get_event_loop().run_until_complete(func(m))
                         else:
                             result = func(m)
                         if result and 'bot' == typ:
@@ -58,7 +58,7 @@ class BaseBroker(InstanceContext):
                     ctx.pop(error)
 
         queue = self.bot_queue if 'bot' == typ else self.message_queue
-        return asyncio.get_event_loop().create_task(worker(queue))
+        return asyncio.get_event_loop().run_in_executor(None, partial(worker, queue))
 
     def launch(self):
         if _cv_broker.get(None):
@@ -68,26 +68,27 @@ class BaseBroker(InstanceContext):
                 self._launch()
 
 
-class AsyncQueueBroker(BaseBroker):
+class QueueBroker(BaseBroker):
     def __init__(self, maxsize=0):
         super().__init__()
-        self.bot_queue = asyncio.Queue(maxsize=maxsize)
-        self.message_queue = asyncio.Queue(maxsize=maxsize)
+        self.bot_queue = queue.Queue(maxsize=maxsize)
+        self.message_queue = queue.Queue(maxsize=maxsize)
         self.bots = dict()
 
     def _launch(self):
         tasks = [
             self._launch_bot_consumer(),
             self._launch_sender_consumer(),
-            *self._launch_events(),
+            *self._launch_events()
         ]
         asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
 
     def get_bot(self, app_id):
+        print('get_bot', self.bots)
         return self.bots[app_id] if app_id in self.bots else None
 
     def register_bot(self, bot):
         self.bots[bot.app_id] = bot
 
 
-MessageBroker = AsyncQueueBroker
+MessageBroker = QueueBroker
