@@ -81,7 +81,6 @@ class AsyncQueueBroker(BaseBroker):
             self._launch_sender_consumer(),
             *self._launch_events(),
         ]
-        print(tasks)
         asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
 
     def get_bot(self, app_id):
