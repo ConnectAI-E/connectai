@@ -26,5 +26,9 @@ setup(
     install_requires=[
         "wslarkbot",
         "flask"
-    ]
+    ],
+    python_requires=">=3.8",
+    extras_require={
+        "openai": ["openai>=1.2.1"],
+    }
 )
