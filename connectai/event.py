@@ -20,9 +20,10 @@ class BaseEventHandler(InstanceContext):
 
 class FeishuCallbackHandler(BaseEventHandler):
 
-    def __init__(self, app_id='noop', prefix='/api/feishu', port=8888):
+    def __init__(self, app_id='noop', prefix='/api/feishu', host='0.0.0.0', port=8888):
         super().__init__(app_id)
         self.prefix = prefix
+        self.host = host
         self.port = port
 
     def get_app(self):
@@ -43,9 +44,9 @@ class FeishuCallbackHandler(BaseEventHandler):
         app.add_url_rule(f"{self.prefix}/<app_id>", 'event_handler', event_handler, methods=['POST'])
         return app
 
-    async def start(self, port=None):
+    async def start(self, host=None, port=None):
         app = self.get_app()
-        app.run(port=port or self.port)
+        app.run(host=host or self.host, port=port or self.port)
 
 
 class NoopEventHandler(BaseEventHandler):
