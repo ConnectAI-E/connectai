@@ -2,6 +2,7 @@ import logging
 import asyncio
 from flask import Flask, request, jsonify
 from functools import partial, wraps
+from wslarkbot import WS_LARK_PROXY_SERVER, WS_LARK_PROXY_PROTOCOL, Client as WSClient, Bot as WSBotBase
 from .globals import current_broker, _cv_broker, broker_ctx, _cv_instance
 from .ctx import InstanceContext
 from .message import Message
@@ -47,6 +48,38 @@ class FeishuCallbackHandler(BaseEventHandler):
     async def start(self, host=None, port=None):
         app = self.get_app()
         app.run(host=host or self.host, port=port or self.port)
+
+
+
+class WSFeishuWebsocketHandler(BaseEventHandler):
+
+    def __init__(self, app_id='noop', server=WS_LARK_PROXY_SERVER, protocol=WS_LARK_PROXY_PROTOCOL):
+        super().__init__(app_id)
+        self.server = server
+        self.protocol = protocol
+
+    def get_app(self):
+        broker_ctx = _cv_broker.get(None)
+
+        class WSBot(WSBotBase):
+            def on_message(self, data, *args, **kwargs):
+                message = Message(**data)
+                bot = broker_ctx.broker.get_bot(self.app_id)
+                if bot:
+                    if bot.filter(message):
+                        broker_ctx.broker.bot_queue.put_nowait((self.app_id, message))
+
+        bots = [WSBot(
+            app_id=bot.app_id,
+            app_secret=bot.app_secret,
+            verification_token=bot.verification_token,
+            encrypt_key=bot.encrypt_key,
+        ) for _, bot in broker_ctx.broker.bots.items()]
+        return WSClient(*bots, server=self.server, protocol=self.protocol)
+
+    async def start(self, debug=False):
+        app = self.get_app()
+        app.start(debug=debug)
 
 
 class NoopEventHandler(BaseEventHandler):

@@ -10,7 +10,8 @@ def reply_text2(message):
 
 with ca.MessageBroker() as broker:
     # ca.NoopEventHandler('app1')
-    ca.FeishuCallbackHandler()  # 这个handler是集中所有的都走这边，所以不需要app_id
+    # ca.FeishuCallbackHandler()  # 这个handler是集中所有的都走这边，所以不需要app_id
+    ca.WSFeishuWebsocketHandler()  # 使用wslarkbot走转发逻辑，无需公网IP
     with ca.FeishuChatBot(
         app_id='cli_a5c9305ede38500d',
         app_secret='',
