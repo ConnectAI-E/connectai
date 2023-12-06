@@ -44,17 +44,19 @@ class BrokerContext:
 
 
 class MessageContext:
-    def __init__(self, broker, message, bot=None):
+    def __init__(self, broker, app_id, message, bot=None):
         self.broker = broker
+        self.app_id = app_id
         self.message = message
         if bot is None:
-            bot = broker.get_bot(message)
+            bot = broker.get_bot(app_id)
         self.bot = bot
         self._cv_tokens = []
 
     def copy(self):
         return self.__class__(
             self.broker,
+            self.app_id,
             self.message,
             bot=self.bot,
         )

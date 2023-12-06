@@ -1,3 +1,4 @@
+import logging
 import asyncio
 from .globals import current_broker
 from .ctx import InstanceContext
@@ -27,7 +28,7 @@ class NoopEventHandler(BaseEventHandler):
     async def start(self):
         while True:
             content = input('User: ')
-            current_broker.bot_queue.put_nowait(self.parse_message(content))
+            current_broker.bot_queue.put_nowait((self.app_id, self.parse_message(content)))
             print('put_nowait', content)
             await asyncio.sleep(0.1)
 
