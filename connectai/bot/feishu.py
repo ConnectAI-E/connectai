@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import json
 import base64
 from Crypto.Cipher import AES
@@ -42,7 +43,7 @@ class FeishuChatBot(BaseBot):
         self.on('filter', lambda message: 'challenge' not in message)
 
     def run(self, message):
-        print('FeishuChatBot.run', message)
+        logging.info('FeishuChatBot.run', message)
         # return 'reply ' + message['content']
         return self.trigger('text', message)
 
@@ -52,7 +53,6 @@ class FeishuChatBot(BaseBot):
 
     def parse_message(self, content):
         if isinstance(content, Request):
-            print(content, content.json)
             data = content.json
             if 'challenge' in data:
                 return Message(**data)
@@ -63,7 +63,7 @@ class FeishuChatBot(BaseBot):
         return super().parse_message(content)
 
     def send(self, message):
-        print('FeishuChatBot.send', message)
+        logging.info('FeishuChatBot.send', message)
 
     def send_text(self, fn=None):
         self.on('text', fn)

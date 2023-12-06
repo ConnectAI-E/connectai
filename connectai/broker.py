@@ -84,7 +84,6 @@ class QueueBroker(BaseBroker):
         asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
 
     def get_bot(self, app_id):
-        print('get_bot', self.bots)
         return self.bots[app_id] if app_id in self.bots else None
 
     def register_bot(self, bot):

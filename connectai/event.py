@@ -36,9 +36,7 @@ class FeishuCallbackHandler(BaseEventHandler):
             if bot:
                 message = bot.parse_message(request)
                 if message and bot.filter(message):
-                    print('put_nowait', message, bot.filter(message), bot)
                     broker_ctx.broker.bot_queue.put_nowait((self.app_id, message))
-                print('message', message, bot.filter(message), bot, broker_ctx.broker.bot_queue.qsize())
                 return jsonify(message)
             return app_id
 
@@ -56,7 +54,6 @@ class NoopEventHandler(BaseEventHandler):
         while True:
             content = input('User: ')
             message = self.parse_message(content)
-            print('put_nowait', message)
             current_broker.bot_queue.put_nowait((self.app_id, message))
             await asyncio.sleep(0.1)
 
