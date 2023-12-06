@@ -10,8 +10,12 @@ def reply_text2(message):
 
 with ca.MessageBroker() as broker:
     # ca.NoopEventHandler('app1')
-    ca.FeishuCallbackHandler('cli_a5c9305ede38500d')
-    with ca.FeishuChatBot(app_id='cli_a5c9305ede38500d', encrypt_key='') as bot:
+    ca.FeishuCallbackHandler()  # 这个handler是集中所有的都走这边，所以不需要app_id
+    with ca.FeishuChatBot(
+        app_id='cli_a5c9305ede38500d',
+        app_secret='',
+        encrypt_key=''
+    ) as bot:
         # 支持一个event多个回调函数
         bot.send_text(reply_text2)
         pass

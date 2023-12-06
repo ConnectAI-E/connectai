@@ -21,7 +21,7 @@ class BaseEventHandler(InstanceContext):
 
 class FeishuCallbackHandler(BaseEventHandler):
 
-    def __init__(self, app_id='', prefix='/api/feishu', port=8888):
+    def __init__(self, app_id='noop', prefix='/api/feishu', port=8888):
         super().__init__(app_id)
         self.prefix = prefix
         self.port = port
@@ -36,7 +36,7 @@ class FeishuCallbackHandler(BaseEventHandler):
             if bot:
                 message = bot.parse_message(request)
                 if message and bot.filter(message):
-                    broker_ctx.broker.bot_queue.put_nowait((self.app_id, message))
+                    broker_ctx.broker.bot_queue.put_nowait((app_id, message))
                 return jsonify(message)
             return app_id
 
