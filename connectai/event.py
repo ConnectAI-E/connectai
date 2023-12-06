@@ -42,7 +42,7 @@ class FeishuCallbackHandler(BaseEventHandler):
                 return jsonify(message)
             return app_id
 
-        app.add_url_rule(f"{self.prefix}/<app_id>", 'event_handler', event_handler)
+        app.add_url_rule(f"{self.prefix}/<app_id>", 'event_handler', event_handler, methods=['POST'])
         return app
 
     async def start(self, port=None):

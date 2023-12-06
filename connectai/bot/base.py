@@ -1,7 +1,8 @@
 import time
-from .globals import current_broker
-from .ctx import InstanceContext
-from .message import Message
+from flask import Request
+from ..globals import current_broker
+from ..ctx import InstanceContext
+from ..message import Message
 
 
 class BaseBot(InstanceContext):
@@ -42,33 +43,6 @@ class BaseBot(InstanceContext):
         # 这里返回结果的时候，如果只有一个结果，就不返回数组，有多个结果就返回数组
         result = [fn(*args, **kwargs) for fn in events]
         return result[0] if len(result) == 1 else result
-
-
-class FeishuChatBot(BaseBot):
-
-    def __init__(self, app_id='', app_secret='', encrypt_key='', verification_token=''):
-        super().__init__(app_id)
-        self.app_secret = app_secret
-        self.encrypt_key = encrypt_key
-        self.verification_token = verification_token
-        self.on('filter', lambda message: 'challenge' not in message)
-
-    def run(self, message):
-        print('FeishuChatBot.run', message)
-        time.sleep(1)
-        print('FeishuChatBot.run', message)
-        # return 'reply ' + message['content']
-        return self.trigger('text', message)
-
-    def parse_message(self, content):
-        content = content if isinstance(content, str) else str(content)
-        return super().parse_message(content)
-
-    def send(self, message):
-        print('FeishuChatBot.send', message)
-
-    def send_text(self, fn=None):
-        self.on('text', fn)
 
 
 
