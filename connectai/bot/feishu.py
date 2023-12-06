@@ -1,6 +1,5 @@
 import logging
 import json
-from Crypto.Cipher import AES
 from flask import Request
 from wslarkbot import AESCipher, Bot as Client
 from .base import BaseBot, Message

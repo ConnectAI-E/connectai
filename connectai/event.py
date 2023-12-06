@@ -2,7 +2,6 @@ import logging
 import asyncio
 from flask import Flask, request, jsonify
 from functools import partial, wraps
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from .globals import current_broker, _cv_broker, broker_ctx, _cv_instance
 from .ctx import InstanceContext
 from .message import Message
@@ -37,8 +36,9 @@ class FeishuCallbackHandler(BaseEventHandler):
                 message = bot.parse_message(request)
                 if message and bot.filter(message):
                     broker_ctx.broker.bot_queue.put_nowait((app_id, message))
-                return jsonify(message)
-            return app_id
+                if 'challenge' in message:
+                    return jsonify(message)
+            return ''
 
         app.add_url_rule(f"{self.prefix}/<app_id>", 'event_handler', event_handler, methods=['POST'])
         return app
