@@ -1,7 +1,7 @@
 import logging
 import json
 from flask import Request
-from wslarkbot import AESCipher, Bot as Client
+from connectai.lark.sdk import AESCipher, Bot as Client
 from .base import BaseBot, Message
 
 

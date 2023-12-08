@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools import find_packages
 
 
-VERSION = '0.0.4'
+VERSION = '0.0.5'
 
 with open('README.md') as f:
     LONG_DESCRIPTION = f.read()
@@ -24,11 +24,14 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=[
-        "wslarkbot",
+        "ca-lark-sdk",
+        "ca-lark-websocket",
+        "ca-lark-webhook",
+        "ca-lark-sdk",
         "flask"
     ],
     python_requires=">=3.8",
     extras_require={
-        "openai": ["openai>=1.2.1"],
+        "lark-helper": ["ca-lark-helper"],
     }
 )

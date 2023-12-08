@@ -2,7 +2,7 @@ import logging
 import asyncio
 from flask import Flask, request, jsonify
 from functools import partial, wraps
-from wslarkbot import WS_LARK_PROXY_SERVER, WS_LARK_PROXY_PROTOCOL, Client as WSClient, Bot as WSBotBase
+from connectai.lark.websocket import WS_LARK_PROXY_SERVER, WS_LARK_PROXY_PROTOCOL, Client as WSClient, Bot as WSBotBase
 from .globals import current_broker, _cv_broker, broker_ctx, _cv_instance
 from .ctx import InstanceContext
 from .message import Message
