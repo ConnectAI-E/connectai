@@ -25,6 +25,7 @@ setup(
     zip_safe=False,
     install_requires=[
         "ca-lark-sdk",
+        "websocket-client"
     ],
     python_requires=">=3.8"
 )
