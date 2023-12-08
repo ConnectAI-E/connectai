@@ -2,7 +2,7 @@ from setuptools import setup
 from setuptools import find_namespace_packages
 
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 
 with open('README.md') as f:
     LONG_DESCRIPTION = f.read()
@@ -25,7 +25,8 @@ setup(
     zip_safe=False,
     install_requires=[
         "ca-lark-sdk",
-        "websocket-client"
+        "websocket-client",
+        "httpx"
     ],
     python_requires=">=3.8"
 )
