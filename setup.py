@@ -1,34 +1,31 @@
-from setuptools import setup
-from setuptools import find_packages
+import os.path
+import sys
+import glob
+import copy
+import runpy
 
 
-VERSION = '0.0.4'
+root_folder = os.path.abspath(os.path.dirname(__file__))
+packages = [f.split(os.sep)[1] for f in glob.glob('src/*/setup.py')]
 
-with open('README.md') as f:
-    LONG_DESCRIPTION = f.read()
+for package in packages:
+    pkg_setup_folder = os.path.join(root_folder, "src", package)
+    pkg_setup_path = os.path.join(pkg_setup_folder, "setup.py")
+    try:
+        saved_dir = os.getcwd()
+        saved_syspath = sys.path
 
-setup(
-    name='connectai',  # package name
-    version=VERSION,  # package version
-    description='lark(feishu) client',  # package description
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type='text/markdown',
-    project_urls={
-        "Documentation": "https://www.connectai-e.com",
-        "Code": "http://github.com/connectAI-E/connectai",
-        "Issue tracker": "http://github.com/connectAI-E/connectai/issues",
-    },
-    author="lloydzhou@gmail.com",
-    license="MIT",
-    keywords=["Feishu", "Lark", "Webhook", "Websocket", "Bot"],
-    packages=find_packages(),
-    zip_safe=False,
-    install_requires=[
-        "wslarkbot",
-        "flask"
-    ],
-    python_requires=">=3.8",
-    extras_require={
-        "openai": ["openai>=1.2.1"],
-    }
-)
+        os.chdir(pkg_setup_folder)
+        sys.path = [pkg_setup_folder] + copy.copy(saved_syspath)
+
+        print("Start ", pkg_setup_path)
+        result = runpy.run_path(pkg_setup_path)
+    except Exception as e:
+        print(e, file=sys.stderr)
+    finally:
+        os.chdir(saved_dir)
+        sys.path = saved_syspath
+
+
+
+

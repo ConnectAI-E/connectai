@@ -5,6 +5,8 @@ bin-release/
 [Bb]in/
 etc/
 data/
+dist/
+*.egg-info/
 
 
 # Other files and folders

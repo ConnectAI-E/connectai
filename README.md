@@ -1,14 +1,64 @@
-# 企联AI Dev
+# 多python包管理项目
 
-ConnectAI定位为一个帮助公司更快地建立AI内部工具的平台
+多python包管理项目
+
+## 目录结构
+```
+src
+├── ca-lark-sdk
+│   ├── connectai
+│   │   └── lark
+│   │       └── sdk
+│   │           └── __init__.py
+│   ├── LICENSE
+│   ├── README.md
+│   └── setup.py
+└── connectai
+    ├── connectai
+    │   └── __init__.py
+    ├── LICENSE
+    ├── README.md
+    └── setup.py
+
+7 directories, 8 files
+```
+
+# build
+
+```
+python setup.py sdist --dist-dir=`pwd`/dist
+
+dist
+├── ca-lark-sdk-0.0.1.tar.gz
+└── connectai-0.0.10.tar.gz
+```
+
+# 本地安装
+
+```
+pip install -U connectai -f dist/ --no-cache-dir
+pip install -U ca-lark-sdk -f dist/ --no-cache-dir
 
 
-## 产品背景
+site-packages/connectai
+├── __init__.py
+├── lark
+│   └── sdk
+│       ├── __init__.py
+│       └── __pycache__
+│           └── __init__.cpython-310.pyc
+└── __pycache__
+    └── __init__.cpython-310.pyc
 
-1. 由于各个公司的内部管理流程不同，会有很多无法标准化的长尾AI需求
-2. 企业内部技术团队需要将1/3的时间用来开发维护这些内部AI工具
-3. 如果能将低代码用于AI内部工具的开发，无疑将极大地提升企业技术团队的效率
-4. 既然AI需求是无法标准化的，那么就标准化这些长尾AI需求的开发工具
-5. 以低代码的方式提高内部AI工具开发效率
+5 directories, 4 files
+
+>>> import connectai
+>>> import connectai.lark.sdk
+>>> connectai.__version__
+'0.0.10'
+>>> connectai.lark.sdk.__version__
+'0.0.1'
+```
+
 
 
