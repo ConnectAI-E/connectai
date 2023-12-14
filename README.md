@@ -26,7 +26,7 @@ src
 # build
 
 ```
-python setup.py sdist --dist-dir=`pwd`/dist
+python setup.py egg_info --egg-base /tmp sdist --dist-dir=`pwd`/dist
 
 dist
 ├── ca-lark-sdk-0.0.1.tar.gz
