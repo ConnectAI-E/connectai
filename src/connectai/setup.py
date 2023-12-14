@@ -27,11 +27,17 @@ setup(
         "ca-lark-sdk",
         "ca-lark-websocket",
         "ca-lark-webhook",
-        "ca-lark-sdk",
         "flask"
     ],
     python_requires=">=3.8",
     extras_require={
+        "langchain": ["langchain"],
+        "dingtalk": [
+            "ca-dingtalk-sdk",
+            "ca-dingtalk-websocket",
+            "ca-dingtalk-webhook",
+        ],
         "lark-helper": ["ca-lark-helper"],
+        "dingtalk-helper": ["ca-dingtalk-helper"],
     }
 )
