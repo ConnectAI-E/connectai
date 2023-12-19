@@ -1,29 +1,14 @@
 import asyncio
-import logging
-from functools import partial, wraps
-
 from flask import Flask, jsonify, request
-
 from connectai.lark.websocket import WS_LARK_PROXY_PROTOCOL, WS_LARK_PROXY_SERVER
 from connectai.lark.websocket import Bot as WSBotBase
 from connectai.lark.websocket import Client as WSClient
-
-from .ctx import InstanceContext
-from .globals import _cv_broker, _cv_instance, broker_ctx, current_broker
-from .message import Message
-
-
-class BaseEventHandler(InstanceContext):
-    def __init__(self, app_id="noop"):
-        super().__init__()
-        self.app_id = app_id
-        current_broker.register_event(self)
-
-    async def start(self, *args, **kwargs):
-        raise NotImplementedError
+from ..globals import _cv_broker, _cv_instance, broker_ctx, current_broker
+from ..message import Message
+from .base import BaseReceiver
 
 
-class FeishuCallbackHandler(BaseEventHandler):
+class FeishuWebhookReceiver(BaseReceiver):
     def __init__(self, app_id="noop", prefix="/api/feishu", host="0.0.0.0", port=8888):
         super().__init__(app_id)
         self.prefix = prefix
@@ -35,7 +20,7 @@ class FeishuCallbackHandler(BaseEventHandler):
         # save broker_ctx in current scope
         broker_ctx = _cv_broker.get(None)
 
-        def event_handler(app_id):
+        def webhook_handler(app_id):
             bot = broker_ctx.broker.get_bot(app_id)
             if bot:
                 message = bot.parse_message(request)
@@ -46,7 +31,7 @@ class FeishuCallbackHandler(BaseEventHandler):
             return ""
 
         app.add_url_rule(
-            f"{self.prefix}/<app_id>", "event_handler", event_handler, methods=["POST"]
+            f"{self.prefix}/<app_id>", "webhook_handler", webhook_handler, methods=["POST"]
         )
         return app
 
@@ -55,7 +40,7 @@ class FeishuCallbackHandler(BaseEventHandler):
         app.run(host=host or self.host, port=port or self.port)
 
 
-class WSFeishuWebsocketHandler(BaseEventHandler):
+class WSFeishuWebsocketReceiver(BaseReceiver):
     def __init__(
         self,
         app_id="noop",
@@ -92,14 +77,3 @@ class WSFeishuWebsocketHandler(BaseEventHandler):
         app = self.get_app()
         app.start(debug=debug)
 
-
-class NoopEventHandler(BaseEventHandler):
-    async def start(self):
-        while True:
-            content = input("User: ")
-            message = self.parse_message(content)
-            current_broker.bot_queue.put_nowait((self.app_id, message))
-            await asyncio.sleep(0.1)
-
-    def parse_message(self, content):
-        return Message(app_id=self.app_id, content=content)

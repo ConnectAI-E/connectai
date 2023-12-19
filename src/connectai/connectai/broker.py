@@ -10,7 +10,7 @@ from .globals import _cv_broker, bot, current_broker, current_instance
 
 class BaseBroker(InstanceContext):
     def __init__(self):
-        self.events = dict()
+        self.receivers = dict()
         super().__init__()
 
     def broker_context(self):
@@ -19,14 +19,14 @@ class BaseBroker(InstanceContext):
     def message_context(self, app_id, message):
         return MessageContext(self, app_id, message)
 
-    def _launch_events(self):
+    def _launch_receivers(self):
         return [
-            asyncio.get_event_loop().create_task(event.start())
-            for _, event in self.events.items()
+            asyncio.get_event_loop().create_task(receiver.start())
+            for _, receiver in self.receivers.items()
         ]
 
-    def register_event(self, event):
-        self.events[event.app_id] = event
+    def register_receiver(self, receiver):
+        self.receivers[receiver.app_id] = receiver
 
     def _launch_bot_consumer(self):
         return self._launch_consumer("bot")
@@ -85,7 +85,7 @@ class QueueBroker(BaseBroker):
         tasks = [
             self._launch_bot_consumer(),
             self._launch_sender_consumer(),
-            *self._launch_events(),
+            *self._launch_receivers(),
         ]
         asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
 
