@@ -21,7 +21,13 @@ setup(
     keywords=["Feishu", "Lark", "Webhook", "Websocket", "Bot"],
     packages=find_packages(),
     zip_safe=False,
-    install_requires=["ca-lark-sdk", "ca-lark-websocket", "ca-lark-webhook", "flask"],
+    install_requires=[
+        "ca-lark-sdk",
+        "ca-lark-websocket",
+        "ca-lark-webhook",
+        "flask",
+        "python-dotenv",
+    ],
     python_requires=">=3.8",
     extras_require={
         "langchain": ["langchain"],
