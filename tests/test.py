@@ -14,15 +14,11 @@ def reply_text2(message):
 
 with ca.MessageBroker() as broker:
     # ca.NoopEventHandler('app1')
-    # ca.FeishuCallbackHandler()  # 这个handler是集中所有的都走这边，所以不需要app_id
-    ca.WSFeishuWebsocketHandler()  # 使用wslarkbot走转发逻辑，无需公网IP
-    with ca.FeishuChatBot(
-        app_id="cli_a5c9305ede38500d", app_secret="", encrypt_key=""
-    ) as bot:
+    # ca.FeishuWebhookReceiver()  # 这个handler是集中所有的都走这边，所以不需要app_id
+    ca.WSFeishuWebsocketReceiver()  # 使用wslarkbot走转发逻辑，无需公网IP
+    with ca.FeishuChatBot(app_id="", app_secret="", encrypt_key="") as bot:
         # 支持一个event多个回调函数
         bot.send_text(reply_text2)
-        pass
-    with ca.FeishuChatBot(app_id="app2") as bot:
         pass
 
 
