@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import queue
+import sys
 from functools import partial
 
 from .ctx import BrokerContext, InstanceContext, MessageContext

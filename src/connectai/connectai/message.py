@@ -26,3 +26,4 @@ class Message(Dict):
                 logging.debug(e)
 
         return Message(**result) if isinstance(result, dict) else result
+

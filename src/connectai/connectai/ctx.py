@@ -1,3 +1,4 @@
+import sys
 from .globals import _cv_broker, _cv_instance, _cv_message, current_broker
 
 _sentinel = object()
