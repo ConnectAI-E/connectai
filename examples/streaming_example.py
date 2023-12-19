@@ -4,6 +4,7 @@ from dotenv import find_dotenv, load_dotenv
 
 import connectai as ca
 from connectai import *
+from connectai.lark.sdk import *
 
 load_dotenv(find_dotenv())
 
@@ -12,6 +13,22 @@ def reply_text2(message):
     print("reply_text", message)
     # 这里可以利用contextvar拿到当前对应的message_ctx里面的数据
     # test from noopreceiver
+    # yield FeishuMessageCard(
+    #     FeishuMessageDiv('reply1'),
+    #     FeishuMessageHr(),
+    #     FeishuMessageDiv(message.event.message.content.text)
+    # )
+    # yield FeishuMessageCard(
+    #     FeishuMessageDiv('reply2'),
+    #     FeishuMessageHr(),
+    #     FeishuMessageDiv(message.event.message.content.text)
+    # )
+    # # finally result
+    # return FeishuMessageCard(
+    #     FeishuMessageDiv('reply_result'),
+    #     FeishuMessageHr(),
+    #     FeishuMessageDiv(message.event.message.content.text)
+    # )
     yield "reply_text1 " + message.event.message.content.text
     yield "reply_text2 " + message.event.message.content.text
     # finally result
@@ -29,7 +46,20 @@ with ca.MessageBroker() as broker:
         encrypt_key=os.environ.get("ENCRYPT_KEY"),
     ) as bot:
         # 支持一个event多个回调函数
-        bot.send_text(reply_text2)
+        bot.on_text(reply_text2)
+        # 支持通过on_new_token + on_result对消息进行处理，或者直接在reply_message函数直接返回对应的message
+        bot.on_new_token(
+            lambda new_token, tokens: FeishuMessageCard(
+                FeishuMessageDiv("new_token"),
+                FeishuMessageHr(),
+                FeishuMessageDiv(new_token),
+            )
+        )
+        bot.on_result(
+            lambda result: FeishuMessageCard(
+                FeishuMessageDiv("result"), FeishuMessageHr(), FeishuMessageDiv(result)
+            )
+        )
         pass
 
 

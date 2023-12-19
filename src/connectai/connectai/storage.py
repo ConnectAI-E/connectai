@@ -2,9 +2,6 @@ from .globals import current_broker
 
 
 class BaseStorage(object):
-    def __init__(self):
-        current_broker.register_storage(self)
-
     def set(self, key, value):
         raise NotImplementedError
 
