@@ -1,4 +1,5 @@
 from contextvars import ContextVar
+
 from werkzeug.local import LocalProxy
 
 """
@@ -26,4 +27,3 @@ current_bot = LocalProxy(_cv_message, "bot", unbound_message=_no_message_msg)
 _no_instance_msg = "Working outside of instance context."
 _cv_instance = ContextVar("connectai.instance_ctx")
 current_instance = LocalProxy(_cv_instance, unbound_message=_no_instance_msg)
-

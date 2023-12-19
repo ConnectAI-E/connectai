@@ -1,13 +1,14 @@
 import time
+
 from flask import Request
-from ..globals import current_broker
+
 from ..ctx import InstanceContext
+from ..globals import current_broker
 from ..message import Message
 
 
 class BaseBot(InstanceContext):
-
-    def __init__(self, app_id=''):
+    def __init__(self, app_id=""):
         super().__init__()
         self.app_id = app_id
         self.events = {}
@@ -18,7 +19,7 @@ class BaseBot(InstanceContext):
 
     def filter(self, message):
         # 支持使用事件按顺序进行过滤，遇到失败的就返回False
-        for fn in self.events.get('filter', []):
+        for fn in self.events.get("filter", []):
             if not fn(message):
                 return False
         return True
@@ -43,6 +44,3 @@ class BaseBot(InstanceContext):
         # 这里返回结果的时候，如果只有一个结果，就不返回数组，有多个结果就返回数组
         result = [fn(*args, **kwargs) for fn in events]
         return result[0] if len(result) == 1 else result
-
-
-

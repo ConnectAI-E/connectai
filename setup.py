@@ -1,12 +1,11 @@
-import os.path
-import sys
-import glob
 import copy
+import glob
+import os.path
 import runpy
-
+import sys
 
 root_folder = os.path.abspath(os.path.dirname(__file__))
-packages = [f.split(os.sep)[1] for f in glob.glob('src/*/setup.py')]
+packages = [f.split(os.sep)[1] for f in glob.glob("src/*/setup.py")]
 
 for package in packages:
     pkg_setup_folder = os.path.join(root_folder, "src", package)
@@ -25,7 +24,3 @@ for package in packages:
     finally:
         os.chdir(saved_dir)
         sys.path = saved_syspath
-
-
-
-

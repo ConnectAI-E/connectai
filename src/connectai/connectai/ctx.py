@@ -1,5 +1,4 @@
-from .globals import _cv_broker, _cv_message, _cv_instance, current_broker
-
+from .globals import _cv_broker, _cv_instance, _cv_message, current_broker
 
 _sentinel = object()
 
@@ -101,6 +100,7 @@ class InstanceContext:
 
     def push(self):
         from .broker import BaseBroker
+
         if _cv_broker.get(None) is None and isinstance(self, BaseBroker):
             _cv_broker.set(self.broker_context())
         self._cv_tokens.append(_cv_instance.set(self))
@@ -114,6 +114,7 @@ class InstanceContext:
         finally:
             instance = _cv_instance.get(None)
             from .broker import BaseBroker
+
             # can start broker ouside with
             if not isinstance(instance, BaseBroker):
                 _cv_instance.reset(self._cv_tokens.pop())
@@ -128,4 +129,3 @@ class InstanceContext:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.pop(exc_value)
-

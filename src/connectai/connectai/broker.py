@@ -1,13 +1,13 @@
+import asyncio
 import logging
 import queue
-import asyncio
 from functools import partial
-from .globals import current_broker, current_instance, _cv_broker, bot
-from .ctx import InstanceContext, BrokerContext, MessageContext
+
+from .ctx import BrokerContext, InstanceContext, MessageContext
+from .globals import _cv_broker, bot, current_broker, current_instance
 
 
 class BaseBroker(InstanceContext):
-
     def __init__(self):
         self.events = dict()
         super().__init__()
@@ -19,16 +19,19 @@ class BaseBroker(InstanceContext):
         return MessageContext(self, app_id, message)
 
     def _launch_events(self):
-        return [asyncio.get_event_loop().create_task(event.start()) for _, event in self.events.items()]
+        return [
+            asyncio.get_event_loop().create_task(event.start())
+            for _, event in self.events.items()
+        ]
 
     def register_event(self, event):
         self.events[event.app_id] = event
 
     def _launch_bot_consumer(self):
-        return self._launch_consumer('bot')
+        return self._launch_consumer("bot")
 
     def _launch_sender_consumer(self):
-        return self._launch_consumer('message')
+        return self._launch_consumer("message")
 
     def _launch_consumer(self, typ):
         def worker(queue):
@@ -39,12 +42,14 @@ class BaseBroker(InstanceContext):
                 try:
                     try:
                         ctx.push()
-                        func = bot.run if 'bot' == typ else bot.send
+                        func = bot.run if "bot" == typ else bot.send
                         if asyncio.iscoroutinefunction(func):
-                            result = asyncio.get_event_loop().run_until_complete(func(m))
+                            result = asyncio.get_event_loop().run_until_complete(
+                                func(m)
+                            )
                         else:
                             result = func(m)
-                        if result and 'bot' == typ:
+                        if result and "bot" == typ:
                             m.update(result=result)
                             logging.info("debug result %r", result)
                             current_broker.message_queue.put_nowait((app_id, m))
@@ -57,7 +62,7 @@ class BaseBroker(InstanceContext):
                     queue.task_done()
                     ctx.pop(error)
 
-        queue = self.bot_queue if 'bot' == typ else self.message_queue
+        queue = self.bot_queue if "bot" == typ else self.message_queue
         return asyncio.get_event_loop().run_in_executor(None, partial(worker, queue))
 
     def launch(self):
@@ -79,7 +84,7 @@ class QueueBroker(BaseBroker):
         tasks = [
             self._launch_bot_consumer(),
             self._launch_sender_consumer(),
-            *self._launch_events()
+            *self._launch_events(),
         ]
         asyncio.get_event_loop().run_until_complete(asyncio.wait(tasks))
 
