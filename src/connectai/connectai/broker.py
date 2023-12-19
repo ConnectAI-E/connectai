@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import logging
 import queue
 import sys
@@ -6,11 +7,13 @@ from functools import partial
 
 from .ctx import BrokerContext, InstanceContext, MessageContext
 from .globals import _cv_broker, bot, current_broker, current_instance
+from .storage import BaseStorage, DictStorage
 
 
 class BaseBroker(InstanceContext):
     def __init__(self):
         self.receivers = dict()
+        self.storage = None
         super().__init__()
 
     def broker_context(self):
@@ -28,11 +31,34 @@ class BaseBroker(InstanceContext):
     def register_receiver(self, receiver):
         self.receivers[receiver.app_id] = receiver
 
+    def register_storage(self, storage):
+        self.storage = storage
+
     def _launch_bot_consumer(self):
         return self._launch_consumer("bot")
 
     def _launch_sender_consumer(self):
         return self._launch_consumer("message")
+
+    def _process_streaming_token(self, bot, m, new_token, tokens, result=None):
+        if new_token:
+            tokens.append(new_token)
+        m.update(tokens=tokens, new_token=new_token)
+        if result:
+            m.update(result=result)
+        # set reply_message_id to message
+        if isinstance(self.storage, BaseStorage):
+            message_id = bot.get_message_id(m)
+            key = f"reply_id:{message_id}"
+            print(
+                "--------------storage has key",
+                self.storage,
+                key,
+                self.storage.has(key),
+            )
+            if self.storage.has(key):
+                m.update(reply_message_id=self.storage.get(key))
+        current_broker.message_queue.put_nowait((bot.app_id, m))
 
     def _launch_consumer(self, typ):
         def worker(queue):
@@ -50,10 +76,46 @@ class BaseBroker(InstanceContext):
                             )
                         else:
                             result = func(m)
-                        if result and "bot" == typ:
+                        if inspect.isgenerator(result):
+                            tokens = []
+                            while True:
+                                try:
+                                    new_token = next(result)
+                                    # process streaming new_token
+                                    if new_token and "bot" == typ:
+                                        self._process_streaming_token(
+                                            bot, m, new_token, tokens
+                                        )
+                                except StopIteration as e:
+                                    # get result value
+                                    self._process_streaming_token(
+                                        bot, m, None, tokens, e.value
+                                    )
+                                    break
+                                except Exception as e:
+                                    logging.exception(e)
+                                finally:
+                                    if isinstance(self.storage, BaseStorage):
+                                        message_id = bot.get_message_id(m)
+                                        key = f"reply_id:{message_id}"
+                                        if self.storage.has(key):
+                                            self.storage.delete(key)
+                        elif result and "bot" == typ:
                             m.update(result=result)
-                            logging.info("debug result %r", result)
+                            logging.debug("debug result %r", result)
                             current_broker.message_queue.put_nowait((app_id, m))
+                        elif (
+                            "message" == typ
+                            and isinstance(result, dict)
+                            and "message_id" in result
+                        ):
+                            logging.error("storage %r %r %r", result, self.storage, m)
+                            # save reply_message_id in "message" consumer
+                            if isinstance(self.storage, BaseStorage):
+                                message_id = bot.get_message_id(m)
+                                self.storage.set(
+                                    f"reply_id:{message_id}", result["message_id"]
+                                )
                     except Exception as e:
                         error = e
                 except:  # noqa: B001
@@ -82,6 +144,9 @@ class QueueBroker(BaseBroker):
         self.bots = dict()
 
     def _launch(self):
+        # set default storage
+        if not self.storage:
+            DictStorage()
         tasks = [
             self._launch_bot_consumer(),
             self._launch_sender_consumer(),

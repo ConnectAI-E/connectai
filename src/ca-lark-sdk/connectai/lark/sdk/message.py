@@ -3,14 +3,74 @@ from typing import Dict
 
 
 # 以下为飞书消息
+class FeishuBaseMessage(Dict):
+    msg_type = "unkown"
+
+
+class FeishuTextMessage(FeishuBaseMessage):
+    msg_type = "text"
+
+    def __init__(self, text=""):
+        super().__init__(text=text)
+
+
+class FeishuImageMessage(FeishuBaseMessage):
+    msg_type = "image"
+
+    def __init__(self, image_key=""):
+        super().__init__(image_key=image_key)
+
+
+class FeishuFileMessage(FeishuBaseMessage):
+    msg_type = "file"
+
+    def __init__(self, file_key=""):
+        super().__init__(file_key=file_key)
+
+
+class FeishuAudioMessage(FeishuFileMessage):
+    msg_type = "audio"
+
+
+class FeishuStickerMessage(FeishuFileMessage):
+    msg_type = "sticker"
+
+
+class FeishuMediaMessage(FeishuBaseMessage):
+    msg_type = "media"
+
+    def __init__(self, file_key="", image_key=""):
+        super().__init__(file_key=file_key, image_key=image_key)
+
+
+class FeishuMessageCardConfig(Dict):
+    def __init__(self, update_multi=True, enable_forward=True):
+        super().__init__(update_multi=update_multi, enable_forward=enable_forward)
+
+
+class FeishuMessageCardHeader(Dict):
+    def __init__(self, content="", tag="plain_text", template="default"):
+        super().__init__(title=dict(tag=tag, content=content), template=template)
+
+
+class FeishuMessageCard(FeishuBaseMessage):
+    msg_type = "interactive"
+
+    def __init__(self, *elements, header=None, config=None):
+        if isinstance(header, str):
+            header = FeishuMessageCardHeader(header)
+        elif not header:
+            header = FeishuMessageCardHeader()
+
+        if not config:
+            config = FeishuMessageCardConfig()
+
+        super().__init__(header=header, elements=elements, config=config)
+
+
 class FeishuMessageHr(Dict):
     def __init__(self):
         super().__init__(tag="hr")
-
-
-class FeishuMessageText(Dict):
-    def __init__(self, text=""):
-        super().__init__(text=text)
 
 
 class FeishuMessageDiv(Dict):
@@ -82,29 +142,6 @@ class FeishuMessageSelectPerson(Dict):
 class FeishuMessageDatePicker(Dict):
     def __init__(self, content="Please select date", tag="plain_text"):
         super().__init__(tag="date_picker", placeholder=dict(tag=tag, content=content))
-
-
-class FeishuMessageCardConfig(Dict):
-    def __init__(self, update_multi=True, enable_forward=True):
-        super().__init__(update_multi=update_multi, enable_forward=enable_forward)
-
-
-class FeishuMessageCardHeader(Dict):
-    def __init__(self, content="", tag="plain_text", template="default"):
-        super().__init__(title=dict(tag=tag, content=content), template=template)
-
-
-class FeishuMessageCard(Dict):
-    def __init__(self, *elements, header=None, config=None):
-        if isinstance(header, str):
-            header = FeishuMessageCardHeader(header)
-        elif not header:
-            header = FeishuMessageCardHeader()
-
-        if not config:
-            config = FeishuMessageCardConfig()
-
-        super().__init__(header=header, elements=elements, config=config)
 
 
 class FeishuMessagePlainText(Dict):
