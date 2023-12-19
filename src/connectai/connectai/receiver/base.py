@@ -1,7 +1,8 @@
 import asyncio
-from .ctx import InstanceContext
-from .globals import current_broker
-from .message import Message
+
+from ..ctx import InstanceContext
+from ..globals import current_broker
+from ..message import Message
 
 
 class BaseReceiver(InstanceContext):
@@ -18,6 +19,7 @@ class NoopReceiver(BaseReceiver):
     """
     get input from terminal, and put in bot_queue
     """
+
     async def start(self):
         while True:
             content = input("User: ")
