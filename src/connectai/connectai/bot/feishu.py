@@ -7,6 +7,7 @@ from connectai.lark.sdk import AESCipher
 from connectai.lark.sdk import Bot as Client
 from connectai.lark.sdk import FeishuBaseMessage, FeishuMessageCard, FeishuTextMessage
 
+from ..storage import BaseStorage, DictStorage
 from .base import BaseBot, Message
 
 
@@ -23,6 +24,7 @@ class FeishuChatBot(BaseBot):
             encrypt_key=encrypt_key,
         )
         self.on("filter", lambda message: "challenge" not in message)
+        self.storage = None
 
     def run(self, message):
         logging.info("FeishuChatBot.run", message)
@@ -49,10 +51,23 @@ class FeishuChatBot(BaseBot):
         return message.event.message.message_id
 
     def send(self, message):
-        logging.debug("FeishuChatBot.send %r", message)
+        logging.error("FeishuChatBot.send %r", message)
         message_id = self.get_message_id(message)
+        key = f"reply_id:{message_id}"
+
+        if isinstance(message.result, FeishuMessageCard) and not self.storage:
+            self.storage = DictStorage()
         if isinstance(message.result, FeishuMessageCard):
-            result = self.client.reply(message_id, message.result).json()
+            if self.storage.has(key):
+                result = self.client.update(
+                    self.storage.get(key), message.result
+                ).json()
+            else:
+                result = self.client.reply(message_id, message.result).json()
+            # try save reply_message_id
+            # TODO delete reply_message_id
+            if not self.storage.has(key) and "message_id" in result.get("data", {}):
+                self.storage.set(key, result["data"]["message_id"])
         elif isinstance(message.result, FeishuBaseMessage):
             result = self.client.reply(message_id, message.result).json()
         elif isinstance(message.result, str):
@@ -61,7 +76,14 @@ class FeishuChatBot(BaseBot):
             ).json()
         else:
             result = {}
-        return result.get("data")
+        logging.error("FeishuChatBot.result %r", result)
+        return result
+
+    def on_new_token(self, fn=None):
+        self.on("new_token", fn)
+
+    def on_result(self, fn=None):
+        self.on("result", fn)
 
     def on_text(self, fn=None):
         self.on("text", fn)

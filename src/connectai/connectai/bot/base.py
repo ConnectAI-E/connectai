@@ -47,3 +47,9 @@ class BaseBot(InstanceContext):
         # 这里返回结果的时候，如果只有一个结果，就不返回数组，有多个结果就返回数组
         result = [fn(*args, **kwargs) for fn in events]
         return result[0] if len(result) == 1 else result
+
+    def process_result(self, result):
+        return self.trigger("result", result) or result
+
+    def process_token(self, new_token, tokens):
+        return self.trigger("new_token", new_token, tokens) or new_token
