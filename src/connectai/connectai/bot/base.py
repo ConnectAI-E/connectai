@@ -31,6 +31,9 @@ class BaseBot(InstanceContext):
     #     if event in self.events:
     #         return self.events[event](*args, **kwargs)
 
+    def get_message_id(self, message):
+        raise NotImplementedError
+
     def on(self, event, fn):
         if event not in self.events:
             self.events[event] = []

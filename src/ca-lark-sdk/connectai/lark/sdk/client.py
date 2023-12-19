@@ -133,7 +133,9 @@ class Bot(object):
         data = {
             "receive_id": receive_id,
             "content": json.dumps(content),
-            "msg_type": msg_type,
+            "msg_type": getattr(content, "msg_type")
+            if hasattr(content, "msg_type")
+            else msg_type,
         }
         return self.post(url, json=data)
 
@@ -148,7 +150,9 @@ class Bot(object):
         url = f"{self.host}/open-apis/im/v1/messages/{message_id}/reply"
         data = {
             "content": json.dumps(content),
-            "msg_type": msg_type,
+            "msg_type": getattr(content, "msg_type")
+            if hasattr(content, "msg_type")
+            else msg_type,
         }
         return self.post(url, json=data)
 

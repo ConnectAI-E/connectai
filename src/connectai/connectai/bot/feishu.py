@@ -5,6 +5,7 @@ from flask import Request
 
 from connectai.lark.sdk import AESCipher
 from connectai.lark.sdk import Bot as Client
+from connectai.lark.sdk import FeishuBaseMessage, FeishuMessageCard, FeishuTextMessage
 
 from .base import BaseBot, Message
 
@@ -44,12 +45,26 @@ class FeishuChatBot(BaseBot):
         content = content if isinstance(content, str) else str(content)
         return super().parse_message(content)
 
+    def get_message_id(self, message):
+        return message.event.message.message_id
+
     def send(self, message):
-        logging.info("FeishuChatBot.send", message)
-        print("send", message, type(message))
-        print("reply_text", message.event.message.message_id)
-        print("reply_text", message.result)
-        self.client.reply_text(message.event.message.message_id, message.result)
+        logging.debug("FeishuChatBot.send %r", message)
+        message_id = self.get_message_id(message)
+        if isinstance(message.result, FeishuMessageCard):
+            result = self.client.reply(message_id, message.result).json()
+        elif isinstance(message.result, FeishuBaseMessage):
+            result = self.client.reply(message_id, message.result).json()
+        elif isinstance(message.result, str):
+            result = self.client.reply(
+                message_id, FeishuTextMessage(message.result)
+            ).json()
+        else:
+            result = {}
+        return result.get("data")
+
+    def on_text(self, fn=None):
+        self.on("text", fn)
 
     def send_text(self, fn=None):
         self.on("text", fn)

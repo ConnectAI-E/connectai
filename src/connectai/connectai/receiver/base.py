@@ -1,4 +1,5 @@
 import asyncio
+import random
 
 from ..ctx import InstanceContext
 from ..globals import current_broker
@@ -27,5 +28,17 @@ class NoopReceiver(BaseReceiver):
             current_broker.bot_queue.put_nowait((self.app_id, message))
             await asyncio.sleep(0.1)
 
+    def random_id(self, size=12):
+        return "".join([str(random.randint(0, 9)) for i in range(size)])
+
     def parse_message(self, content):
-        return Message(app_id=self.app_id, content=content)
+        return Message(
+            app_id=self.app_id,
+            content=content,
+            event=dict(
+                message=dict(
+                    message_id=self.random_id(),
+                    content=dict(text=content),
+                )
+            ),
+        )
