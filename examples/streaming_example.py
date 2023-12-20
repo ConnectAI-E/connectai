@@ -16,23 +16,28 @@ def reply_text2(message):
     # yield FeishuMessageCard(
     #     FeishuMessageDiv('reply1'),
     #     FeishuMessageHr(),
-    #     FeishuMessageDiv(message.raw.event.message.content.text)
+    #     FeishuMessageDiv(message.content.text)
     # )
     # yield FeishuMessageCard(
     #     FeishuMessageDiv('reply2'),
     #     FeishuMessageHr(),
-    #     FeishuMessageDiv(message.raw.event.message.content.text)
+    #     FeishuMessageDiv(message.content.text)
     # )
     # # finally result
     # return FeishuMessageCard(
     #     FeishuMessageDiv('reply_result'),
     #     FeishuMessageHr(),
-    #     FeishuMessageDiv(message.raw.event.message.content.text)
+    #     FeishuMessageDiv(message.content.text)
     # )
-    yield "reply_text1 " + message.raw.event.message.content.text
-    yield "reply_text2 " + message.raw.event.message.content.text
-    # finally result
-    return "reply_result " + message.raw.event.message.content.text
+    from time import sleep
+
+    if message.type == MessageType.Text:
+        yield "reply_text1 " + message.content.text
+        sleep(1)
+        yield "reply_text2 " + message.content.text
+        sleep(1)
+        return "reply_result " + message.content.text
+    return "only support text message"
 
 
 with ca.MessageBroker() as broker:
