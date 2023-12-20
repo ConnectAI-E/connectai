@@ -1,10 +1,13 @@
 import asyncio
+
 from flask import Flask, jsonify, request
+
 from connectai.lark.websocket import WS_LARK_PROXY_PROTOCOL, WS_LARK_PROXY_SERVER
 from connectai.lark.websocket import Bot as WSBotBase
 from connectai.lark.websocket import Client as WSClient
+
 from ..globals import _cv_broker, _cv_instance, broker_ctx, current_broker
-from ..message import Message
+from ..message import FeishuEventMessage
 from .base import BaseReceiver
 
 
@@ -31,7 +34,10 @@ class FeishuWebhookReceiver(BaseReceiver):
             return ""
 
         app.add_url_rule(
-            f"{self.prefix}/<app_id>", "webhook_handler", webhook_handler, methods=["POST"]
+            f"{self.prefix}/<app_id>",
+            "webhook_handler",
+            webhook_handler,
+            methods=["POST"],
         )
         return app
 
@@ -56,7 +62,7 @@ class WSFeishuWebsocketReceiver(BaseReceiver):
 
         class WSBot(WSBotBase):
             def on_message(self, data, *args, **kwargs):
-                message = Message(**data)
+                message = FeishuEventMessage(**data)
                 bot = broker_ctx.broker.get_bot(self.app_id)
                 if bot:
                     if bot.filter(message):
@@ -76,4 +82,3 @@ class WSFeishuWebsocketReceiver(BaseReceiver):
     async def start(self, debug=False):
         app = self.get_app()
         app.start(debug=debug)
-

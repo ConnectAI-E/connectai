@@ -7,8 +7,9 @@ from connectai.lark.sdk import AESCipher
 from connectai.lark.sdk import Bot as Client
 from connectai.lark.sdk import FeishuBaseMessage, FeishuMessageCard, FeishuTextMessage
 
+from ..message import FeishuEventMessage
 from ..storage import BaseStorage, DictStorage
-from .base import BaseBot, Message
+from .base import BaseBot
 
 
 class FeishuChatBot(BaseBot):
@@ -40,10 +41,10 @@ class FeishuChatBot(BaseBot):
         if isinstance(content, Request):
             data = content.json
             if "challenge" in data:
-                return Message(**data)
+                return FeishuEventMessage(**data)
             if "encrypt" in data:
                 data = self.client._decrypt_data(self.encrypt_key, data["encrypt"])
-            return Message(**data)
+            return FeishuEventMessage(**data)
         content = content if isinstance(content, str) else str(content)
         return super().parse_message(content)
 
