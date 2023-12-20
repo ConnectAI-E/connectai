@@ -47,7 +47,7 @@ class FeishuChatBot(BaseBot):
         content = ""
         if isinstance(message, FeishuEventMessage):
             try:
-                message_type = message.event.message.message_type.upper()
+                message_type = message.event.message.message_type.capitalize()
                 typ = getattr(MessageType, message_type)
                 content = message.event.message.content
             except Exception as e:
