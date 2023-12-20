@@ -4,7 +4,7 @@ from flask import Request
 
 from ..ctx import InstanceContext
 from ..globals import current_broker
-from ..message import Message
+from ..message import Message, MessageType, QueueMessage
 
 
 class BaseBot(InstanceContext):
@@ -14,8 +14,9 @@ class BaseBot(InstanceContext):
         self.events = {}
         current_broker.register_bot(self)
 
-    def parse_message(self, content):
-        return Message(app_id=self.app_id, content=content)
+    def parse_message(self, content, type=MessageType.Unkown) -> QueueMessage:
+        # always return QueueMessage
+        return QueueMessage(type, content, Message(app_id=self.app_id, content=content))
 
     def filter(self, message):
         # 支持使用事件按顺序进行过滤，遇到失败的就返回False
@@ -32,7 +33,7 @@ class BaseBot(InstanceContext):
     #         return self.events[event](*args, **kwargs)
 
     def get_message_id(self, message):
-        raise NotImplementedError
+        pass
 
     def on(self, event, fn):
         if event not in self.events:
@@ -48,8 +49,13 @@ class BaseBot(InstanceContext):
         result = [fn(*args, **kwargs) for fn in events]
         return result[0] if len(result) == 1 else result
 
-    def process_result(self, result):
-        return self.trigger("result", result) or result
+    def get_message_type(self, message, update=False):
+        return MessageType.Unkown
 
-    def process_token(self, new_token, tokens):
-        return self.trigger("new_token", new_token, tokens) or new_token
+    def process_result(self, result, update=False):
+        result = self.trigger("result", result) or result
+        return result, self.get_message_type(result, update=update)
+
+    def process_token(self, new_token, tokens, update=False):
+        result = self.trigger("new_token", new_token, tokens) or new_token
+        return result, self.get_message_type(result, update=update)

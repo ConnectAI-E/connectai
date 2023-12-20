@@ -1,3 +1,5 @@
+from time import time
+
 from .globals import current_broker
 
 
@@ -16,9 +18,9 @@ class BaseStorage(object):
 
 
 class DictStorage(BaseStorage):
-    def __init__(self):
+    def __init__(self, items=dict()):
         super().__init__()
-        self.data = {}
+        self.data = items
 
     def set(self, key, value):
         self.data[key] = value
@@ -34,3 +36,27 @@ class DictStorage(BaseStorage):
 
     def __repr__(self):
         return repr(self.data)
+
+
+class ExpiredDictStorage(DictStorage):
+    def __init__(self, expire=3600, items=dict()):
+        self.expire = expire
+        super().__init__(items)
+
+    def set(self, key, value):
+        return super().set(key, [value, self.expire + time()])
+
+    def get(self, key):
+        if not self.has(key):
+            raise KeyError
+        value, _ = self.data[key]
+        return value
+
+    def has(self, key):
+        if key in self.data:
+            _, expire = self.data[key]
+            if expire > time():
+                return True
+            else:
+                del self.data[key]
+        return False

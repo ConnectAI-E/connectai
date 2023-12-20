@@ -30,7 +30,7 @@ class FeishuWebhookReceiver(BaseReceiver):
                 if message and bot.filter(message):
                     broker_ctx.broker.bot_queue.put_nowait((app_id, message))
                 if "challenge" in message:
-                    return jsonify(message)
+                    return jsonify(message.raw)
             return ""
 
         app.add_url_rule(
@@ -62,9 +62,9 @@ class WSFeishuWebsocketReceiver(BaseReceiver):
 
         class WSBot(WSBotBase):
             def on_message(self, data, *args, **kwargs):
-                message = FeishuEventMessage(**data)
                 bot = broker_ctx.broker.get_bot(self.app_id)
                 if bot:
+                    message = bot.parse_message(FeishuEventMessage(**data))
                     if bot.filter(message):
                         broker_ctx.broker.bot_queue.put_nowait((self.app_id, message))
 
