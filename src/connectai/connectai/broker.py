@@ -54,6 +54,7 @@ class BaseBroker(InstanceContext):
                             result = func(m)
                         if inspect.isgenerator(result):
                             tokens = []
+                            replied = False
                             while True:
                                 try:
                                     new_token = next(result)
@@ -61,20 +62,29 @@ class BaseBroker(InstanceContext):
                                     if new_token and "bot" == typ:
                                         tokens.append(new_token)
                                         _m = copy.copy(m)
+                                        message, message_type = bot.process_token(
+                                            new_token, tokens, update=replied
+                                        )
                                         _m.update(
                                             tokens=tokens,
                                             new_token=new_token,
-                                            result=bot.process_token(new_token, tokens),
+                                            result=message,
+                                            type=message_type,
                                         )
                                         current_broker.message_queue.put_nowait(
                                             (app_id, _m)
                                         )
+                                        replied = True
                                 except StopIteration as e:
                                     # get result value
                                     _m = copy.copy(m)
+                                    message, message_type = bot.process_result(
+                                        e.value, update=replied
+                                    )
                                     _m.update(
                                         tokens=tokens,
-                                        result=bot.process_result(e.value),
+                                        result=message,
+                                        type=message_type,
                                     )
                                     current_broker.message_queue.put_nowait(
                                         (app_id, _m)

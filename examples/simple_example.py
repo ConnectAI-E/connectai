@@ -14,8 +14,8 @@ def reply_text2(message):
     print(
         "reply_text current_bot", current_bot, message_ctx.app_id, message_ctx.message
     )
-    print("reply_text ", message.event.message.content.text)
-    return "reply_text2 " + message.event.message.content.text
+    print("reply_text ", message.raw.event.message.content.text)
+    return "reply_text2 " + message.raw.event.message.content.text
 
 
 with ca.MessageBroker() as broker:

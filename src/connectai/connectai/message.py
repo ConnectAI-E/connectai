@@ -1,15 +1,15 @@
 import json
 import logging
-from typing import Dict
+from enum import IntEnum, auto
+from typing import Dict, Union
+
+from connectai.lark.sdk import FeishuBaseMessage
 
 
 class Message(Dict):
     def __getattribute__(self, name):
         if name in self:
             result = self[name]
-            if name == "result":
-                return result
-
             return self.__class__(**result) if isinstance(result, dict) else result
         return super().__getattribute__(name)
 
@@ -46,3 +46,71 @@ class DingtalkEventMessage(Message):
 
 class WeworkEventMessage(Message):
     pass
+
+
+class MessageType(IntEnum):
+    Unkown = 0
+    # input or just send message
+    Text = 100
+    File = auto()
+    Audio = auto()
+    Media = auto()
+    Sticker = auto()
+
+    # send feishu interactive message
+    Card = 109
+    Interactive = 109
+
+    # send dingtalk action card message
+    ActionCard = 110
+    # send wework template card message
+    TemplateCard = 120
+
+    ReplyText = 200
+    ReplyFile = auto()
+    ReplyAudio = auto()
+    ReplyMedia = auto()
+    ReplySticker = auto()
+    # feishu interactive message type
+    ReplyCard = auto()
+    UpdateCard = auto()
+
+    # reply dingtalk action card message
+    ReplyActionCard = 210  # dingtalk
+    # reply wework template card message
+    ReplyTemplateCard = 220  # wework
+
+
+class QueueMessage(Dict):
+    """
+    message type transfer in bot_queue and message_queue
+    reqired attribute: type
+    reqired attribute: content
+    reqired attribute: raw
+    optional attribute: result
+    """
+
+    def __init__(
+        self,
+        type: MessageType,
+        content: Union[str, None],
+        raw: Union[FeishuEventMessage, DingtalkEventMessage, WeworkEventMessage],
+        result: Union[FeishuBaseMessage] = None,
+    ):
+        super().__init__(type=type, content=content, raw=raw, result=result)
+
+    @property
+    def type(self):
+        return self["type"]
+
+    @property
+    def content(self):
+        return self["content"]
+
+    @property
+    def raw(self):
+        return self["raw"]
+
+    @property
+    def result(self):
+        return self["result"]

@@ -7,8 +7,8 @@ from connectai.lark.sdk import AESCipher
 from connectai.lark.sdk import Bot as Client
 from connectai.lark.sdk import FeishuBaseMessage, FeishuMessageCard, FeishuTextMessage
 
-from ..message import FeishuEventMessage
-from ..storage import BaseStorage, DictStorage
+from ..message import FeishuEventMessage, MessageType, QueueMessage
+from ..storage import BaseStorage, ExpiredDictStorage
 from .base import BaseBot
 
 
@@ -24,7 +24,7 @@ class FeishuChatBot(BaseBot):
             verification_token=verification_token,
             encrypt_key=encrypt_key,
         )
-        self.on("filter", lambda message: "challenge" not in message)
+        self.on("filter", lambda message: "challenge" not in message.raw)
         self.storage = None
 
     def run(self, message):
@@ -36,48 +36,78 @@ class FeishuChatBot(BaseBot):
         cipher = AESCipher(encrypt_key)
         return json.loads(cipher.decrypt_string(encrypt_data))
 
-    def parse_message(self, content):
+    def parse_message(self, message):
         # TODO self.client._validate(self.encrypt_key, {'body': conetne.json})
-        if isinstance(content, Request):
-            data = content.json
-            if "challenge" in data:
-                return FeishuEventMessage(**data)
+        if isinstance(message, Request):
+            data = message.json
             if "encrypt" in data:
                 data = self.client._decrypt_data(self.encrypt_key, data["encrypt"])
-            return FeishuEventMessage(**data)
-        content = content if isinstance(content, str) else str(content)
-        return super().parse_message(content)
+            message = FeishuEventMessage(**data)
+        typ = MessageType.Unkown
+        content = ""
+        if isinstance(message, FeishuEventMessage):
+            try:
+                message_type = message.event.message.message_type.upper()
+                typ = getattr(MessageType, message_type)
+                content = message.event.message.content
+            except Exception as e:
+                logging.warning(e)
+        elif isinstance(message, str):
+            typ = MessageType.Text
+            content = message
+            message = Message(content=content)
+
+        return QueueMessage(typ, content, message)
 
     def get_message_id(self, message):
-        return message.event.message.message_id
+        try:
+            return message.event.message.message_id
+        except Exception as e:
+            logging.warning(e)
+            return ""
 
-    def send(self, message):
-        logging.error("FeishuChatBot.send %r", message)
-        message_id = self.get_message_id(message)
+    def get_message_type(self, message, update=False):
+        if isinstance(message, FeishuMessageCard):
+            return MessageType.UpdateCard if update else MessageType.ReplyCard
+        if isinstance(message, FeishuBaseMessage):
+            try:
+                message_type = message.msg_type.upper()
+                return getattr(MessageType, message_type)
+            except Exception as e:
+                logging.warning(e)
+        return MessageType.Unkown
+
+    def send(self, message: QueueMessage):
+        # logging.error("FeishuChatBot.send %r", message)
+        message_id = self.get_message_id(message.raw)
         key = f"reply_id:{message_id}"
+        result = {}
 
-        if isinstance(message.result, FeishuMessageCard) and not self.storage:
-            self.storage = DictStorage()
-        if isinstance(message.result, FeishuMessageCard):
+        if (
+            message.type in (MessageType.ReplyCard, MessageType.UpdateCard)
+            and not self.storage
+        ):
+            self.storage = ExpiredDictStorage()
+
+        if message.type == MessageType.ReplyCard:
+            result = self.client.reply(message_id, message.result).json()
+            # try save reply_message_id
+            if "message_id" in result.get("data", {}):
+                self.storage.set(key, result["data"]["message_id"])
+        elif message.type == MessageType.UpdateCard:
             if self.storage.has(key):
                 result = self.client.update(
                     self.storage.get(key), message.result
                 ).json()
             else:
-                result = self.client.reply(message_id, message.result).json()
-            # try save reply_message_id
-            # TODO delete reply_message_id
-            if not self.storage.has(key) and "message_id" in result.get("data", {}):
-                self.storage.set(key, result["data"]["message_id"])
+                logging.error("can not get reply_message_id %r", message)
         elif isinstance(message.result, FeishuBaseMessage):
             result = self.client.reply(message_id, message.result).json()
         elif isinstance(message.result, str):
             result = self.client.reply(
                 message_id, FeishuTextMessage(message.result)
             ).json()
-        else:
-            result = {}
-        logging.error("FeishuChatBot.result %r", result)
+        # logging.error("FeishuChatBot.result %r", result)
         return result
 
     def on_new_token(self, fn=None):
