@@ -28,9 +28,13 @@ class FeishuChatBot(BaseBot):
         self.storage = None
 
     def run(self, message):
-        logging.info("FeishuChatBot.run", message)
-        # return 'reply ' + message['content']
-        return self.trigger("text", message)
+        try:
+            if isinstance(message.raw, FeishuEventMessage):
+                message_type = message.raw.event.message.message_type
+                return self.trigger(message_type, message)
+            raise Exception("Unkown message")
+        except Exception as e:
+            logging.error(e)
 
     def _decrypt_data(self, encrypt_key, encrypt_data):
         cipher = AESCipher(encrypt_key)
@@ -71,7 +75,7 @@ class FeishuChatBot(BaseBot):
             return MessageType.UpdateCard if update else MessageType.ReplyCard
         if isinstance(message, FeishuBaseMessage):
             try:
-                message_type = message.msg_type.upper()
+                message_type = message.msg_type.capitalize()
                 return getattr(MessageType, message_type)
             except Exception as e:
                 logging.warning(e)
