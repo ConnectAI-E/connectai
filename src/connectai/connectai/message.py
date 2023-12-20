@@ -19,10 +19,11 @@ class FeishuEventMessage(Message):
         if (
             name in self
             and "message" == name
-            and "content" in result
-            and isinstance(result["content"], str)
+            and "content" in self[name]
+            and isinstance(self[name]["content"], str)
         ):
             try:
+                result = self[name]
                 result["content"] = json.loads(result["content"])
                 # remove @
                 for mention in result.get("mentions", []):
