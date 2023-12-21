@@ -114,11 +114,12 @@ class Client(object):
         encrypt_key=None,
         verification_token=None,
         host=LARK_HOST,
+        event_type=None,
         message_type=None,
     ):
         def decorate(method):
             # try create new bot from arguments
-            if app_id:
+            if app_id and app_secret:
                 bot = Bot(
                     app_id=app_id,
                     app_secret=app_secret,
@@ -132,13 +133,21 @@ class Client(object):
             if bot:
                 """
                 1. get old on_message
-                2. gen new on_message, and filter by message_type
+                2. gen new on_message, and filter by event_type or message_type
                 3. if not match, call old_on_message
                 """
                 old_on_message = getattr(bot, "on_message")
 
                 def on_message(data, *args, **kwargs):
                     if "header" in data:
+                        if event_type and event_type == data["header"]["event_type"]:
+                            return method(
+                                bot,
+                                data["header"]["event_id"],
+                                data["event"],
+                                *args,
+                                **kwargs,
+                            )
                         if data["header"]["event_type"] == "im.message.receive_v1":
                             real_message_type = data["event"]["message"]["message_type"]
                             if message_type and message_type != real_message_type:
