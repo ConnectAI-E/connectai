@@ -12,3 +12,22 @@ ConnectAI定位为一个帮助公司更快地建立AI内部工具的平台
 5. 以低代码的方式提高内部AI工具开发效率
 
 
+# ca-lark-webhook
+
+1. 生成飞书(Lark) webhook回调接口
+2. 注册处理对应事件的回调方法
+
+
+## python sdk
+```
+from connectai.lark.webhook import LarkServer
+
+app = LarkServer()
+
+@app.on_bot_message(app_id='cli_xxx', app_secret='xxx', encrypt_key='xxx', message_type='text')
+def on_message_callback1(bot, message_id, content, **kwargs):
+    text = content['text']
+    bot.reply_text(message_id, 'reply: ' + text)
+
+app.start(host='0.0.0.0', port=8888)
+```
