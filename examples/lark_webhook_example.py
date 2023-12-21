@@ -19,7 +19,6 @@ app = LarkServer()
 )
 def on_text_message(bot, message_id, content, *args, **kwargs):
     text = content["text"]
-    print("bot", bot)
     bot.reply_text(message_id, "reply: " + text)
 
 
