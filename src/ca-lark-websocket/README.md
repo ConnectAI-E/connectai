@@ -13,7 +13,7 @@
 ## 安全性
 1. 飞书回调消息都是加密的，只能由websocket客户端自己解密，转发服务是透明的。
 2. 如何确保自己的channel不会被别人恶意使用？
-> 使用nginx basic auth，nchan支持auth_request，在对应的request里面使用basic auth就能做校验  
+> 使用nginx basic auth，nchan支持auth_request，在对应的request里面使用basic auth就能做校验
 
 
 ## 实现
@@ -66,6 +66,21 @@ bot2 = MyBot('cli_xxx', app_secret='xxx', encrypt_key='xxx')
 
 # 一个websocket连接，支持同时监听多个机器人回调消息
 client = Client(bot1, bot2)
+client.start()
+```
+
+## decorate
+> 使用装饰器可以更简洁的通过一个回调函数处理消息
+```
+from connectai.lark.websocket import Client
+
+client = Client()
+
+@client.on_bot_message(app_id='cli_xxx', app_secret='xxx', encrypt_key='xxx', message_type='text')
+def on_message_callback1(bot, message_id, content, **kwargs):
+    text = content['text']
+    bot.reply_text(message_id, 'reply: ' + text)
+
 client.start()
 ```
 
@@ -132,6 +147,3 @@ pip install ca-lark-websocket langchain openai click
 python test_openai.py
 ```
 ![image](https://github.com/ConnectAI-E/Feishu-Webhook-Proxy/assets/1826685/531c8ff5-3b46-4c15-9600-e02dae55cee2)
-
-
-
