@@ -28,4 +28,12 @@ def on_sticker_message(bot, message_id, content, *args, **kwargs):
     bot.reply(message_id, FeishuStickerMessage(file_key))
 
 
+@client.on_bot_message(
+    app_id=os.environ.get("APP_ID"), event_type="im.message.reaction.created_v1"
+)
+def on_reaction_created(bot, event_id, event, *args, **kwargs):
+    # reply sticker
+    print("event_id", event_id, event)
+
+
 client.start()
