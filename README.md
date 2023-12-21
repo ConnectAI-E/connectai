@@ -36,8 +36,7 @@ dist
 # 本地安装
 
 ```
-pip install -U connectai -f dist/ --no-cache-dir
-pip install -U ca-lark-sdk -f dist/ --no-cache-dir
+pip install dist/*
 
 
 site-packages/connectai
@@ -59,6 +58,3 @@ site-packages/connectai
 >>> connectai.lark.sdk.__version__
 '0.0.1'
 ```
-
-
-
