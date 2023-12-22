@@ -1,11 +1,16 @@
+import re
+
 from setuptools import find_namespace_packages, setup
+
+with open("connectai/lark/webhook/__init__.py") as f:
+    version = re.findall("__version__.*(\d.\d.\d).*", f.read())[0]
 
 with open("README.md") as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
     name="ca-lark-webhook",  # package name
-    version=get_version("connectai/lark/webhook/__init__.py"),  # package version
+    version=version,  # package version
     description="lark(feishu) client",  # package description
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
