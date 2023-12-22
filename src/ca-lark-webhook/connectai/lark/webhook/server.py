@@ -6,7 +6,7 @@ from connectai.lark.sdk import *
 from connectai.lark.sdk.mixin import BotMessageDecorateMixin
 
 
-class LarkServer(object, BotMessageDecorateMixin):
+class LarkServer(BotMessageDecorateMixin):
     def __init__(
         self, *bot, bots=list(), prefix="/api/feishu", host="0.0.0.0", port=8888
     ):
