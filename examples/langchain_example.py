@@ -1,3 +1,14 @@
+"""使用 connectai 框架实现的 LangChain 机器人
+
+LangChain Bot 的最简实现：
+your_bot = LangChainBot()
+your_bot.chat = YourChatModel() # 在你自己的 ChatModel 中使用 LangChain 的功能
+
+app = FeishuAPP(bots=[your_bot])
+app.run()
+
+"""
+
 import os
 from typing import Annotated, Callable, Generator
 
@@ -16,7 +27,18 @@ from connectai.message import Message
 load_dotenv(find_dotenv(), override=True)
 
 
-def speed_limit(limit: int = 15) -> Callable:
+def message_buffer(limit: int = 15) -> Callable:
+    """消息缓冲装饰器
+
+    控制每次更新卡片的消息长度，防止向飞书请求次数过多
+
+    Args:
+        limit (int, optional): 每次更新卡片的消息长度. Defaults to 15.
+
+    Returns:
+        Callable: 装饰器函数
+    """
+
     def decorate(fn: Callable):
         def wrapper(*args, **kwargs):
             results = fn(*args, **kwargs)
@@ -43,11 +65,13 @@ def speed_limit(limit: int = 15) -> Callable:
 
 
 class langchainChatBaseBot(object):
+    """LangChain 机器人基类"""
+
     app_id: str
     app_secret: str
     encrypt_key: str
     streaming: bool
-    chat: BaseLLM
+    chat: Annotated[BaseLLM, BaseChatModel]
     bot: ca.FeishuChatBot
 
     def __init__(
@@ -64,8 +88,16 @@ class langchainChatBaseBot(object):
         self.chat: Annotated[BaseLLM, BaseChatModel] = None
         self.bot = None
 
-    @speed_limit(15)
+    @message_buffer(15)
     def reply_text(self, message: Message) -> Annotated[Generator, str]:
+        """回复文本消息
+
+        Args:
+            message (Message): 用户本次输入的消息
+
+        Returns:
+            Annotated[Generator, str]: 回复的消息。当类型为 Generator 时，将启用流式回复
+        """
         text = message.content.text
 
         messages = []
