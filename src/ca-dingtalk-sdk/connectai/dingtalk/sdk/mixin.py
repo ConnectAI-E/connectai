@@ -18,8 +18,7 @@ class BotMessageDecorateMixin(object):
         app_secret=None,
         agent_id=None,
         host=DING_HOST,
-        event_type=None,
-        message_type=None,
+        msgtype=None,
     ):
         def decorate(method):
             # try create new bot from arguments
@@ -42,30 +41,17 @@ class BotMessageDecorateMixin(object):
                 old_on_message = getattr(bot, "on_message")
 
                 def on_message(data, *args, **kwargs):
-                    if "header" in data:
-                        if event_type and event_type == data["header"]["event_type"]:
-                            return method(
-                                bot,
-                                data["header"]["event_id"],
-                                data["event"],
-                                *args,
-                                **kwargs,
-                            )
-                        elif (
-                            not event_type
-                            and data["header"]["event_type"] == "im.message.receive_v1"
-                        ):
-                            real_message_type = data["event"]["message"]["message_type"]
-                            if message_type and message_type != real_message_type:
-                                logging.warning(
-                                    "message_type (%r) not match!", real_message_type
-                                )
-                            else:
-                                message_id = data["event"]["message"]["message_id"]
-                                content = json.loads(
-                                    data["event"]["message"]["content"]
-                                )
-                                return method(bot, message_id, content, *args, **kwargs)
+                    real_msgtype = data["msgtype"]
+                    if msgtype and msgtype != real_msgtype:
+                        logging.warning("msgtype (%r) not match!", real_msgtype)
+                    else:
+                        return method(
+                            bot,
+                            data["sessionWebhook"],
+                            data[real_msgtype],
+                            *args,
+                            **kwargs
+                        )
                     return old_on_message(data, *args, **kwargs)
 
                 setattr(bot, "on_message", on_message)
