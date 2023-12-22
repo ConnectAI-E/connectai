@@ -3,7 +3,7 @@ import re
 from setuptools import find_namespace_packages, setup
 
 with open("connectai/lark/sdk/__init__.py") as f:
-    version = re.findall("__version__.*(\d.\d.\d).*", f.read())[0]
+    version = re.findall("__version__.*(\d+\.\d+\.\d+).*", f.read())[0]
 
 with open("README.md") as f:
     LONG_DESCRIPTION = f.read()
