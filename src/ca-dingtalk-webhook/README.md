@@ -20,6 +20,7 @@ ConnectAI定位为一个帮助公司更快地建立AI内部工具的平台
 
 ## python sdk
 ```
+from connectai.dingtalk.sdk import DingtalkTextMessage
 from connectai.dingtalk.webhook import DingtalkServer
 
 app = DingtalkServer()
@@ -27,7 +28,7 @@ app = DingtalkServer()
 @app.on_bot_message(app_id='dingxxx', app_secret='xxx', agent_id='xxx', msgtype='text')
 def on_text_message(bot, sessionWebhook, content, **kwargs):
     text = content['content']
-    bot.reply(message_id, 'reply: ' + text)
+    bot.reply(sessionWebhook, DingtalkTextMessage("reply: " + text))
 
 app.start(host='0.0.0.0', port=8888)
 ```

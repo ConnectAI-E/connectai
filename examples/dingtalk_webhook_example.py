@@ -18,8 +18,6 @@ app = DingtalkServer()
 )
 def on_text_message(bot, sessionWebhook, content, *args, **kwargs):
     text = content["content"]
-    print("text", text)
-    print("reply", DingtalkTextMessage("reply: " + text))
     bot.reply(sessionWebhook, DingtalkTextMessage("reply: " + text))
 
 

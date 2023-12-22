@@ -21,9 +21,9 @@ setup(
     },
     author="lloydzhou@gmail.com",
     license="MIT",
-    keywords=["Feishu", "Lark", "Webhook", "Websocket", "Bot"],
+    keywords=["Dingtalk", "DingDing", "Webhook", "Bot"],
     packages=find_namespace_packages(),
     zip_safe=False,
-    install_requires=["ca-lark-sdk", "flask"],
+    install_requires=["ca-dingtalk-sdk", "flask"],
     python_requires=">=3.8",
 )
