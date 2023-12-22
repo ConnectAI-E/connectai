@@ -1,8 +1,7 @@
 import base64
 import hashlib
+import hmac
 import json
-import logging
-import sys
 from functools import cached_property
 from time import time
 
@@ -72,7 +71,7 @@ class Bot(object):
         self.on_message(message["body"], message)
 
     def reply(self, sessionWebhook, content):
-        return httpx.post(sessionWebhook, json=json).json()
+        return httpx.post(sessionWebhook, json=content).json()
 
     def on_message(self, data, *args, **kwargs):
         pass
