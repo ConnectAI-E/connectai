@@ -62,7 +62,13 @@ class MessageType(IntEnum):
     Interactive = 109
 
     # send dingtalk action card message
+    # https://open.dingtalk.com/document/orgapp/receive-message
     ActionCard = 110
+    FeedCard = auto()
+    Picture = auto()
+    Video = auto()
+    Markdown = auto()
+    RichText = auto()
     # send wework template card message
     TemplateCard = 120
 
@@ -76,7 +82,9 @@ class MessageType(IntEnum):
     UpdateCard = auto()
 
     # reply dingtalk action card message
-    ReplyActionCard = 210  # dingtalk
+    ReplyActionCard = 210
+    ReplyFeedCard = auto()
+    ReplyMarkdown = auto()
     # reply wework template card message
     ReplyTemplateCard = 220  # wework
 
