@@ -1,13 +1,11 @@
 from setuptools import find_namespace_packages, setup
 
-VERSION = "0.0.1"
-
 with open("README.md") as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
     name="ca-lark-helper",  # package name
-    version=VERSION,  # package version
+    version=get_version("connectai/lark/helper/__init__.py"),  # package version
     description="lark(feishu) client",  # package description
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
