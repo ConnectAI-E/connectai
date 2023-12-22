@@ -1,3 +1,9 @@
+import json
+import logging
+
+from .client import LARK_HOST, Bot
+
+
 class BotMessageDecorateMixin(object):
     def add_bot(self, bot):
         if bot.app_id not in self.bots_map:
