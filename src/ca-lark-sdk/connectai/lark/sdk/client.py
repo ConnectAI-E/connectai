@@ -9,8 +9,6 @@ from time import time
 import httpx
 from Crypto.Cipher import AES
 
-WS_LARK_PROXY_SERVER = "feishu.forkway.cn"
-WS_LARK_PROXY_PROTOCOL = "https"
 LARK_HOST = "https://open.feishu.cn"
 
 
