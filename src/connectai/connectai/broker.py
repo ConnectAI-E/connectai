@@ -94,7 +94,8 @@ class BaseBroker(InstanceContext):
                                     logging.exception(e)
                         elif result and "bot" == typ:
                             _m = copy.copy(m)
-                            _m.update(result=bot.process_result(result))
+                            message, message_type = bot.process_result(result)
+                            _m.update(result=message, type=message_type)
                             logging.debug("debug result %r", result)
                             current_broker.message_queue.put_nowait((app_id, _m))
                     except Exception as e:
