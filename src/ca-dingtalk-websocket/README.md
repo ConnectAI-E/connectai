@@ -19,7 +19,7 @@
 ## 实现
 - [x] 部署一个nchan（openresty版本）
 - [x] 配置一个internal的location，给内部转发钉钉消息使用
-- [x] 配置一个location，作为钉钉webhook转发（处理消息转发逻辑，如果是配置连接，就重定向到request_id对应的channel等待客户端返回challenge给钉钉）
+- [x] 配置一个location，作为钉钉webhook转发（处理消息转发逻辑）
 
 
 # organization
