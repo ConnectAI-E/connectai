@@ -241,11 +241,11 @@ class MarketBot(Bot):
         return result["tenant_access_token"], result["expire"] + time()
 
     def on_message(self, data, *args, **kwargs):
-        if "header" in data:
-            if (
-                "event_callback" == data["header"]["event_type"]
-                and "app_ticket" == data["event"]["type"]
-            ):
-                app_id = data["event"]["app_id"]
-                app_ticket = data["event"]["app_ticket"]
-                self.storage.set(f"app_ticket:{app_id}", app_ticket)
+        if (
+            "event_callback" == data.get("type")
+            and "app_ticket" == data["event"]["type"]
+        ):
+            print("save app_ticket", data)
+            app_id = data["event"]["app_id"]
+            app_ticket = data["event"]["app_ticket"]
+            self.storage.set(f"app_ticket:{app_id}", app_ticket)

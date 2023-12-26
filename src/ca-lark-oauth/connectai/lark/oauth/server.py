@@ -29,8 +29,9 @@ class Server(BotMessageDecorateMixin):
 
             def oauth_redirect():
                 redirect_uri = request.base_url
-                scope = "contact:contact.base:readonly"
-                oauth_url = f"https://open.feishu.cn/open-apis/authen/v1/authorize?app_id={app_id}&redirect_uri={quote(redirect_uri)}&scope={scope}&state={app_id}"
+                # scope = "contact:contact.base:readonly"
+                scope = ""
+                oauth_url = f"https://open.feishu.cn/open-apis/authen/v1/authorize?app_id={app_id}&redirect_uri={quote(redirect_uri)}&scope={scope}&state={app_id or state}"
                 return redirect(oauth_url, code=302)
 
             if code:

@@ -1,7 +1,7 @@
 import json
 import logging
 
-from .client import LARK_HOST, Bot
+from .client import LARK_HOST, Bot, MarketBot
 
 
 class BotMessageDecorateMixin(object):
@@ -23,6 +23,7 @@ class BotMessageDecorateMixin(object):
         verification_token=None,
         host=LARK_HOST,
         event_type=None,
+        app_type=None,
     ):
         return self.on_bot_message(
             app_id=app_id,
@@ -31,6 +32,7 @@ class BotMessageDecorateMixin(object):
             verification_token=verification_token,
             host=host,
             event_type=event_type,
+            app_type=app_type,
         )
 
     def on_bot_message(
@@ -42,17 +44,19 @@ class BotMessageDecorateMixin(object):
         host=LARK_HOST,
         event_type=None,
         message_type=None,
+        app_type=None,  # internal/market
     ):
         def decorate(method):
             # try create new bot from arguments
             if app_id and app_secret:
-                bot = Bot(
+                params = dict(
                     app_id=app_id,
                     app_secret=app_secret,
                     encrypt_key=encrypt_key,
                     verification_token=verification_token,
                     host=host,
                 )
+                bot = MarketBot(**params) if app_type == "market" else Bot(**params)
                 self.add_bot(bot)
 
             bot = self.bots_map.get(app_id)
@@ -66,6 +70,10 @@ class BotMessageDecorateMixin(object):
 
                 def on_message(data, *args, **kwargs):
                     if "header" in data:
+                        if "tenant_key" in data["header"] and isinstance(
+                            bot, MarketBot
+                        ):
+                            bot.tenant_key = data["header"]["tenant_key"]
                         if event_type and event_type == data["header"]["event_type"]:
                             return method(
                                 bot,
