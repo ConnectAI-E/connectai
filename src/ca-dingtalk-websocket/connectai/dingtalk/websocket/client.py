@@ -84,7 +84,7 @@ class Client(BotMessageDecorateMixin):
                 logging.debug("no headers in message %r", message)
                 return
             app_id = message["headers"]["x-app-id"]
-            bot = self.bots_map.get(app_id)
+            bot = self.get_bot(app_id)
             if bot:
                 result = bot.process_message(message)
                 logging.debug("result %r", result)

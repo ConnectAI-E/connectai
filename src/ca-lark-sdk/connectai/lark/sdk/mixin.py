@@ -5,6 +5,9 @@ from .client import LARK_HOST, Bot
 
 
 class BotMessageDecorateMixin(object):
+    def get_bot(self, app_id):
+        return self.bots_map.get(app_id)
+
     def add_bot(self, bot):
         if bot.app_id not in self.bots_map:
             self.bots_map[bot.app_id] = bot

@@ -20,7 +20,7 @@ class LarkServer(BotMessageDecorateMixin):
         bp = Blueprint("lark-webhook", __name__)
 
         def webhook_handler(app_id):
-            bot = self.bots_map.get(app_id)
+            bot = self.get_bot(app_id)
             if bot:
                 result = bot.process_message(
                     {
