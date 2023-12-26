@@ -15,6 +15,24 @@ class BotMessageDecorateMixin(object):
         else:
             logging.warning("duplicate bot %r", bot.app_id)
 
+    def on_bot_event(
+        self,
+        app_id=None,
+        app_secret=None,
+        encrypt_key=None,
+        verification_token=None,
+        host=LARK_HOST,
+        event_type=None,
+    ):
+        return self.on_bot_message(
+            app_id=app_id,
+            app_secret=app_secret,
+            encrypt_key=encrypt_key,
+            verification_token=verification_token,
+            host=host,
+            event_type=event_type,
+        )
+
     def on_bot_message(
         self,
         app_id=None,

@@ -46,17 +46,18 @@ class Bot(object):
         verification_token=None,
         encrypt_key=None,
         host=LARK_HOST,
+        storage=None,
     ):
         self.app_id = app_id
         self.app_secret = app_secret
         self.encrypt_key = encrypt_key
         self.verification_token = verification_token
         self.host = host
+        self.storage = storage
 
-    @cached_property
-    def _tenant_access_token(self):
+    def _access_token_by_name(self, name):
         # https://open.feishu.cn/document/ukTMukTMukTM/ukDNz4SO0MjL5QzM/auth-v3/auth/tenant_access_token_internal
-        url = f"{self.host}/open-apis/auth/v3/tenant_access_token/internal"
+        url = f"{self.host}/open-apis/auth/v3/{name}/internal"
         result = self.post(
             url,
             json={
@@ -64,21 +65,49 @@ class Bot(object):
                 "app_secret": self.app_secret,
             },
         ).json()
-        if "tenant_access_token" not in result:
-            raise Exception("get tenant_access_token error")
-        return result["tenant_access_token"], result["expire"] + time()
+        if name not in result:
+            raise Exception(f"get {name} error")
+        return result[name], result["expire"] + time()
+
+    @cached_property
+    def _tenant_access_token(self):
+        return self._access_token_by_name("tenant_access_token")
+
+    @cached_property
+    def _app_access_token(self):
+        return self._access_token_by_name("app_access_token")
+
+    def access_token_by_name(self, name):
+        key = f"{name}:{self.app_id}"
+        try:
+            token, expired = json.loads(self.storage.get(key))
+        except Exception as e:
+            logging.debug("error to get %r from storage %r", name, e)
+            token, expired = getattr(self, f"_{name}")
+            try:
+                self.storage.set(key, json.dumps([token, expired]))
+            except Exception as e:
+                logging.debug("error to save %r to storage %r", name, e)
+        if not token or expired < time():
+            # retry get_tenant_access_token
+            delattr(self, f"_{name}")
+            token, expired = getattr(self, f"_{name}")
+            try:
+                self.storage.set(key, json.dumps([token, expired]))
+            except Exception as e:
+                logging.debug("error to save %r to storage %r", name, e)
+        return token
 
     @property
     def tenant_access_token(self):
-        token, expired = self._tenant_access_token
-        if not token or expired < time():
-            # retry get_tenant_access_token
-            del self._tenant_access_token
-            token, expired = self._tenant_access_token
-        return token
+        return self.access_token_by_name("tenant_access_token")
+
+    @property
+    def app_access_token(self):
+        return self.access_token_by_name("app_access_token")
 
     def request(self, method, url, headers=dict(), **kwargs):
-        if "tenant_access_token" not in url:
+        if "access_token" not in url and "Authorization" not in headers:
             headers["Authorization"] = "Bearer {}".format(self.tenant_access_token)
         return httpx.request(method, url, headers=headers, **kwargs)
 
@@ -175,3 +204,48 @@ class Bot(object):
 
     def on_message(self, data, *args, **kwargs):
         pass
+
+
+class MarketBot(Bot):
+    tenant_key = ""  # set before get tenant_access_token
+
+    @cached_property
+    def _app_access_token(self):
+        # https://open.feishu.cn/document/server-docs/authentication-management/access-token/app_access_token
+        url = f"{self.host}/open-apis/auth/v3/app_access_token"
+        result = self.post(
+            url,
+            json={
+                "app_id": self.app_id,
+                "app_secret": self.app_secret,
+                "app_ticket": self.storage.get(f"app_ticket:{self.app_id}"),
+            },
+        ).json()
+        if "app_access_token" not in result:
+            raise Exception("get app_access_token error")
+        return result["app_access_token"], result["expire"] + time()
+
+    @cached_property
+    def _tenant_access_token(self):
+        # https://open.feishu.cn/document/server-docs/authentication-management/access-token/tenant_access_token
+        url = f"{self.host}/open-apis/auth/v3/tenant_access_token"
+        result = self.post(
+            url,
+            json={
+                "app_access_token": self.app_access_token,
+                "tenant_key": self.tenant_key,
+            },
+        ).json()
+        if "tenant_access_token" not in result:
+            raise Exception("get tenant_access_token error")
+        return result["tenant_access_token"], result["expire"] + time()
+
+    def on_message(self, data, *args, **kwargs):
+        if "header" in data:
+            if (
+                "event_callback" == data["header"]["event_type"]
+                and "app_ticket" == data["event"]["type"]
+            ):
+                app_id = data["event"]["app_id"]
+                app_ticket = data["event"]["app_ticket"]
+                self.storage.set(f"app_ticket:{app_id}", app_ticket)
