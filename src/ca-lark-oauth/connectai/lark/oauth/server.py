@@ -20,26 +20,24 @@ class Server(BotMessageDecorateMixin):
     def get_blueprint(self):
         bp = Blueprint("lark-oauth", __name__)
 
-        def oauth_handler(app_id):
+        def oauth_handler():
+            app_id = request.args.get("app_id", default="", type=str)
             code = request.args.get("code", default="", type=str)
             state = request.args.get("state", default="", type=str)
+            if not app_id and not state:
+                raise Exception("param error")
 
             def oauth_redirect():
-                print("host", request.host)
-                print("host_url", request.host_url)
-                redirect_uri = f"{request.host_url}{self.prefix}/{app_id}".replace(
+                redirect_uri = f"{request.host_url}{self.prefix}".replace(
                     "//oauth", "/oauth"
                 )
-                # scope = "contact:contact"
                 scope = "contact:contact.base:readonly"
-                oauth_url = f"https://open.feishu.cn/open-apis/authen/v1/authorize?app_id={app_id}&redirect_uri={quote(redirect_uri)}&scope={scope}&state="
-                print("oauth_url", oauth_url)
+                oauth_url = f"https://open.feishu.cn/open-apis/authen/v1/authorize?app_id={app_id}&redirect_uri={quote(redirect_uri)}&scope={scope}&state={app_id}"
                 return redirect(oauth_url, code=302)
 
             if code:
-                bot = self.get_bot(app_id)
+                bot = self.get_bot(state)  # state=app_id
                 if bot:
-                    print("bot", bot)
                     access = bot.post(
                         f"{bot.host}/open-apis/authen/v1/oidc/access_token",
                         json=dict(
@@ -52,16 +50,13 @@ class Server(BotMessageDecorateMixin):
                     ).json()
                     if "data" not in access:
                         return oauth_redirect()
-                    print("access", access)
                     user_info = bot.get(
                         f"{bot.host}/open-apis/authen/v1/user_info",
                         headers={
                             "Authorization": f"Bearer {access['data']['access_token']}",
                         },
                     ).json()
-                    print("user_info", user_info)
                     if "open_id" in user_info.get("data", {}):
-                        print("process_message", user_info)
                         bot.process_message(
                             {
                                 "headers": {
@@ -81,7 +76,7 @@ class Server(BotMessageDecorateMixin):
             return oauth_redirect()
 
         bp.add_url_rule(
-            f"{self.prefix}/<app_id>",
+            f"{self.prefix}",
             "oauth_handler",
             oauth_handler,
             methods=["GET"],
