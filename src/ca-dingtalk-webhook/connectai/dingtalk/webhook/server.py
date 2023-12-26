@@ -1,6 +1,6 @@
 import logging
 
-from flask import Flask, jsonify, request
+from flask import Blueprint, Flask, jsonify, request
 
 from connectai.dingtalk.sdk import *
 from connectai.dingtalk.sdk.mixin import BotMessageDecorateMixin
@@ -16,8 +16,8 @@ class DingtalkServer(BotMessageDecorateMixin):
         self.host = host
         self.port = port
 
-    def get_app(self):
-        app = Flask(__name__)
+    def get_blueprint(self):
+        bp = Blueprint("dingtalk-webhook", __name__)
 
         def webhook_handler(app_id):
             bot = self.bots_map.get(app_id)
@@ -34,12 +34,17 @@ class DingtalkServer(BotMessageDecorateMixin):
                     return jsonify(result)
             return ""
 
-        app.add_url_rule(
+        bp.add_url_rule(
             f"{self.prefix}/<app_id>",
             "webhook_handler",
             webhook_handler,
             methods=["GET", "POST"],
         )
+        return bp
+
+    def get_app(self):
+        app = Flask(__name__)
+        app.register_blueprint(self.get_blueprint())
         return app
 
     def start(self, host=None, port=None):
