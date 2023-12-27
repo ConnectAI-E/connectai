@@ -1,7 +1,5 @@
 from time import time
 
-from .globals import current_broker
-
 
 class BaseStorage(object):
     def set(self, key, value):

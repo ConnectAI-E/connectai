@@ -17,49 +17,35 @@ class BotMessageDecorateMixin(object):
 
     def on_bot_event(
         self,
-        app_id=None,
-        app_secret=None,
-        encrypt_key=None,
-        verification_token=None,
-        host=LARK_HOST,
         event_type=None,
-        app_type=None,
+        app_type=None,  # internal/market
+        bot=None,
+        **kwargs,
     ):
         return self.on_bot_message(
-            app_id=app_id,
-            app_secret=app_secret,
-            encrypt_key=encrypt_key,
-            verification_token=verification_token,
-            host=host,
             event_type=event_type,
             app_type=app_type,
+            bot=bot,
+            **kwargs,
         )
 
     def on_bot_message(
         self,
-        app_id=None,
-        app_secret=None,
-        encrypt_key=None,
-        verification_token=None,
-        host=LARK_HOST,
-        event_type=None,
         message_type=None,
+        event_type=None,
         app_type=None,  # internal/market
+        bot=None,
+        **kwargs,
     ):
         def decorate(method):
             # try create new bot from arguments
-            if app_id and app_secret:
-                params = dict(
-                    app_id=app_id,
-                    app_secret=app_secret,
-                    encrypt_key=encrypt_key,
-                    verification_token=verification_token,
-                    host=host,
-                )
-                bot = MarketBot(**params) if app_type == "market" else Bot(**params)
+            if bot:
+                self.add_bot(bot)
+            if kwargs.get("app_id") and kwargs.get("app_secret"):
+                bot = MarketBot(**kwargs) if app_type == "market" else Bot(**kwargs)
                 self.add_bot(bot)
 
-            bot = self.bots_map.get(app_id)
+            bot = self.get_bot(app_id)
             if bot:
                 """
                 1. get old on_message

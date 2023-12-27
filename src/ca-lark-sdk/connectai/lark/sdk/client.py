@@ -245,7 +245,6 @@ class MarketBot(Bot):
             "event_callback" == data.get("type")
             and "app_ticket" == data["event"]["type"]
         ):
-            print("save app_ticket", data)
             app_id = data["event"]["app_id"]
             app_ticket = data["event"]["app_ticket"]
             self.storage.set(f"app_ticket:{app_id}", app_ticket)

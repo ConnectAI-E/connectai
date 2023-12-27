@@ -48,4 +48,8 @@ def on_oauth_user_info(bot, event_id, user_info, *args, **kwargs):
 
 app = oauth.get_app()
 app.register_blueprint(hook.get_blueprint())
-app.run(host="0.0.0.0", port=8888)
+
+
+if __name__ == "__main__":
+    # gunicorn -w 1 -b :8888 "examples.lark_oauth_example:app"
+    app.run(host="0.0.0.0", port=8888)
