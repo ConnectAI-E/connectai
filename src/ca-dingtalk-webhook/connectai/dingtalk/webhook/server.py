@@ -20,7 +20,7 @@ class DingtalkServer(BotMessageDecorateMixin):
         bp = Blueprint("dingtalk-webhook", __name__)
 
         def webhook_handler(app_id):
-            bot = self.bots_map.get(app_id)
+            bot = self.get_bot(app_id)
             if request.method == "POST" and bot:
                 result = bot.process_message(
                     {
