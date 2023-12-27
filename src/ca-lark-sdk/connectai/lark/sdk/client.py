@@ -148,7 +148,7 @@ class Bot(object):
                 if self.verification_token != data["token"]:
                     raise Exception("invalide token")
             return self.url_verification({"body": data})
-        self.on_message(data, message)
+        return self.on_message(data, message)
 
     def _decrypt_data(self, encrypt_key, encrypt_data):
         cipher = AESCipher(encrypt_key)
@@ -248,3 +248,4 @@ class MarketBot(Bot):
             app_id = data["event"]["app_id"]
             app_ticket = data["event"]["app_ticket"]
             self.storage.set(f"app_ticket:{app_id}", app_ticket)
+            return

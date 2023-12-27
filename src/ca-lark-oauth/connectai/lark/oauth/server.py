@@ -1,7 +1,7 @@
 import logging
 from urllib.parse import quote
 
-from flask import Blueprint, Flask, jsonify, redirect, request
+from flask import Blueprint, Flask, jsonify, make_response, redirect, request
 
 from connectai.lark.sdk import *
 from connectai.lark.sdk.mixin import BotMessageDecorateMixin
@@ -35,6 +35,7 @@ class Server(BotMessageDecorateMixin):
                 return redirect(oauth_url, code=302)
 
             if code:
+                result = None
                 bot = self.get_bot(state)  # state=app_id
                 if bot:
                     access = bot.post(
@@ -55,8 +56,18 @@ class Server(BotMessageDecorateMixin):
                             "Authorization": f"Bearer {access['data']['access_token']}",
                         },
                     ).json()
+                    try:
+                        user_contact = bot.get(
+                            f"{bot.host}/open-apis/contact/v3/users/{user_info['data']['open_id']}?user_id_type=open_id",
+                        ).json()
+                    except Exception as e:
+                        logging.error(e)
+                        user_contact = {}
+
+                    if "user" in user_contact.get("data", {}) and user_info.get("data"):
+                        user_info["data"].update(user_contact["data"]["user"])
                     if "open_id" in user_info.get("data", {}):
-                        bot.process_message(
+                        result = bot.process_message(
                             {
                                 "headers": {
                                     key.lower(): value
@@ -71,7 +82,23 @@ class Server(BotMessageDecorateMixin):
                                 ),
                             }
                         )
-                return ""
+                return make_response(
+                    """
+<script>
+try {
+  window.opener.postMessage("""
+                    + json.dumps(dict(event="oauth", data=result))
+                    + """, '*')
+} catch(e) {
+  console.error(e)
+  setTimeout(() => window.close(), 3000)
+  // location.replace('/')
+}
+</script>
+                                     """,
+                    {"Content-Type": "text/html"},
+                )
+                return jsonify()
             return oauth_redirect()
 
         bp.add_url_rule(
