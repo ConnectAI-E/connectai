@@ -19,28 +19,16 @@ bot = MarketBot(
     verification_token=os.environ.get("VERIFICATION_TOKEN"),
     storage=ExpiredDictStorage(items={}),
 )
-hook.add_bot(bot)
-oauth.add_bot(bot)
 
 
-@hook.on_bot_message(
-    app_id=os.environ.get("APP_ID"),
-    app_secret=os.environ.get("APP_SECRET"),
-    encrypt_key=os.environ.get("ENCRYPT_KEY"),
-    verification_token=os.environ.get("VERIFICATION_TOKEN"),
-    message_type="text",
-)
+@hook.on_bot_message(message_type="text", bot=bot)
 def on_text_message(bot, message_id, content, *args, **kwargs):
     text = content["text"]
     print("reply_text", message_id, text)
     bot.reply_text(message_id, "reply: " + text)
 
 
-@oauth.on_bot_event(
-    app_id=os.environ.get("APP_ID"),
-    app_secret=os.environ.get("APP_SECRET"),
-    event_type="oauth:user_info",
-)
+@oauth.on_bot_event(event_type="oauth:user_info", bot=bot)
 def on_oauth_user_info(bot, event_id, user_info, *args, **kwargs):
     # oauth user_info
     print("oauth", user_info)
