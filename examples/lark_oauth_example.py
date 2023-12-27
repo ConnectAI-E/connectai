@@ -3,7 +3,7 @@ import os
 from dotenv import find_dotenv, load_dotenv
 
 from connectai.lark.oauth import Server as OauthServer
-from connectai.lark.sdk import MarketBot
+from connectai.lark.sdk import Bot, MarketBot
 from connectai.lark.webhook import LarkServer
 from connectai.storage import ExpiredDictStorage
 
@@ -32,6 +32,7 @@ def on_text_message(bot, message_id, content, *args, **kwargs):
 def on_oauth_user_info(bot, event_id, user_info, *args, **kwargs):
     # oauth user_info
     print("oauth", user_info)
+    return user_info
 
 
 app = oauth.get_app()

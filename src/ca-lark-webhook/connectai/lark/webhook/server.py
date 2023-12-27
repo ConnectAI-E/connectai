@@ -30,7 +30,7 @@ class LarkServer(BotMessageDecorateMixin):
                         "body": request.json,
                     }
                 )
-                if result:
+                if result and "challenge" in result:
                     return jsonify(result)
             return ""
 

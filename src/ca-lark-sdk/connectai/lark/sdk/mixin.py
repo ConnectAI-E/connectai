@@ -42,27 +42,28 @@ class BotMessageDecorateMixin(object):
             if bot:
                 self.add_bot(bot)
             if kwargs.get("app_id") and kwargs.get("app_secret"):
-                bot = MarketBot(**kwargs) if app_type == "market" else Bot(**kwargs)
-                self.add_bot(bot)
+                self.add_bot(
+                    MarketBot(**kwargs) if app_type == "market" else Bot(**kwargs)
+                )
 
-            bot = self.get_bot(app_id)
-            if bot:
+            _bot = bot or self.get_bot(kwargs.get("app_id"))
+            if _bot:
                 """
                 1. get old on_message
                 2. gen new on_message, and filter by event_type or message_type
                 3. if not match, call old_on_message
                 """
-                old_on_message = getattr(bot, "on_message")
+                old_on_message = getattr(_bot, "on_message")
 
                 def on_message(data, *args, **kwargs):
                     if "header" in data:
                         if "tenant_key" in data["header"] and isinstance(
-                            bot, MarketBot
+                            _bot, MarketBot
                         ):
-                            bot.tenant_key = data["header"]["tenant_key"]
+                            _bot.tenant_key = data["header"]["tenant_key"]
                         if event_type and event_type == data["header"]["event_type"]:
                             return method(
-                                bot,
+                                _bot,
                                 data["header"]["event_id"],
                                 data["event"],
                                 *args,
@@ -82,10 +83,12 @@ class BotMessageDecorateMixin(object):
                                 content = json.loads(
                                     data["event"]["message"]["content"]
                                 )
-                                return method(bot, message_id, content, *args, **kwargs)
+                                return method(
+                                    _bot, message_id, content, *args, **kwargs
+                                )
                     return old_on_message(data, *args, **kwargs)
 
-                setattr(bot, "on_message", on_message)
+                setattr(_bot, "on_message", on_message)
             return method
 
         return decorate
