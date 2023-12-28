@@ -89,10 +89,10 @@ try {
   window.opener.postMessage("""
                     + json.dumps(dict(event="oauth", data=result))
                     + """, '*')
+  setTimeout(() => window.close(), 3000)
 } catch(e) {
   console.error(e)
-  setTimeout(() => window.close(), 3000)
-  // location.replace('/')
+  location.replace('/')
 }
 </script>
                                      """,
