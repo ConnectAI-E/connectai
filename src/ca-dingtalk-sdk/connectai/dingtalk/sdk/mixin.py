@@ -23,30 +23,28 @@ class BotMessageDecorateMixin(object):
             if kwargs.get("app_id") and kwargs.get("app_secret"):
                 self.add_bot(Bot(**kwargs))
 
-            _bot = bot or self.get_bot(kwargs.get("app_id"))
-            if _bot:
-                """
-                1. get old on_message
-                2. gen new on_message, and filter by event_type or message_type
-                3. if not match, call old_on_message
-                """
-                old_on_message = getattr(_bot, "on_message")
+            """
+            1. get old on_message
+            2. gen new on_message, and filter by event_type or message_type
+            3. if not match, call old_on_message
+            """
+            old_on_message = getattr(Bot, "on_message")
 
-                def on_message(data, *args, **kwargs):
-                    real_msgtype = data["msgtype"]
-                    if msgtype and msgtype != real_msgtype:
-                        logging.warning("msgtype (%r) not match!", real_msgtype)
-                    else:
-                        return method(
-                            _bot,
-                            data["sessionWebhook"],
-                            data[real_msgtype],
-                            *args,
-                            **kwargs
-                        )
-                    return old_on_message(data, *args, **kwargs)
+            def on_message(_bot, data, *args, **kwargs):
+                real_msgtype = data["msgtype"]
+                if msgtype and msgtype != real_msgtype:
+                    logging.warning("msgtype (%r) not match!", real_msgtype)
+                else:
+                    return method(
+                        _bot,
+                        data["sessionWebhook"],
+                        data[real_msgtype],
+                        *args,
+                        **kwargs
+                    )
+                return old_on_message(_bot, data, *args, **kwargs)
 
-                setattr(_bot, "on_message", on_message)
+            setattr(Bot, "on_message", on_message)
             return method
 
         return decorate
