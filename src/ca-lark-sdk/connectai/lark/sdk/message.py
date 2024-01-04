@@ -192,3 +192,24 @@ class FeishuMessageConfirm(Dict):
             title=dict(tag="plain_text", content=title),
             text=dict(tag="plain_text", content=text),
         )
+
+
+class FeishuMessageColumnSet(Dict):
+    def __init__(self, *columns, flex_mode="none", background_style="grey"):
+        super().__init__(
+            tag="column_set",
+            flex_mode=flex_mode,
+            background_style=background_style,
+            columns=columns,
+        )
+
+
+class FeishuMessageColumn(Dict):
+    def __init__(self, *elements, width="weighted", weight=1, vertical_align="top"):
+        super().__init__(
+            tag="column",
+            width=width,
+            weight=weight,
+            vertical_align=vertical_align,
+            elements=elements,
+        )
