@@ -177,8 +177,8 @@ class FeishuMessageImage(Dict):
 
 
 class FeishuMessageMarkdown(Dict):
-    def __init__(self, content=""):
-        super().__init__(tag="markdown", content=content)
+    def __init__(self, content="", **kwargs):
+        super().__init__(tag="markdown", content=content, **kwargs)
 
 
 class FeishuMessageNote(Dict):
