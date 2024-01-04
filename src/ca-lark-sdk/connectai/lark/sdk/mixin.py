@@ -53,7 +53,17 @@ class BotMessageDecorateMixin(object):
             old_on_message = getattr(cls, "on_message")
 
             def on_message(_bot, data, *args, **kwargs):
-                if "header" in data:
+                if "action" in data:
+                    # card event
+                    if event_type and event_type == "card:action":
+                        return method(
+                            _bot,
+                            data["token"],
+                            data,
+                            *args,
+                            **kwargs,
+                        )
+                elif "header" in data:
                     if "tenant_key" in data["header"] and isinstance(_bot, MarketBot):
                         _bot.tenant_key = data["header"]["tenant_key"]
                     if event_type and event_type == data["header"]["event_type"]:

@@ -123,7 +123,11 @@ class Bot(object):
         return {"challenge": challenge}
 
     def _validate(self, encrypt_key, message):
-        if not encrypt_key or not message["headers"].get("x-lark-signature"):
+        if (
+            not encrypt_key
+            or not message["headers"].get("x-lark-signature")
+            or not message["body"].get("header")
+        ):
             return
         timestamp = message["headers"]["x-lark-request-timestamp"]
         nonce = message["headers"]["x-lark-request-nonce"]
