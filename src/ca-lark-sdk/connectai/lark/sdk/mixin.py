@@ -71,6 +71,7 @@ class BotMessageDecorateMixin(object):
                             _bot,
                             data["header"]["event_id"],
                             data["event"],
+                            data,
                             *args,
                             **kwargs,
                         )
@@ -86,7 +87,9 @@ class BotMessageDecorateMixin(object):
                         else:
                             message_id = data["event"]["message"]["message_id"]
                             content = json.loads(data["event"]["message"]["content"])
-                            return method(_bot, message_id, content, *args, **kwargs)
+                            return method(
+                                _bot, message_id, content, data, *args, **kwargs
+                            )
                 return old_on_message(_bot, data, *args, **kwargs)
 
             setattr(cls, "on_message", on_message)

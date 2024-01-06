@@ -39,6 +39,7 @@ class BotMessageDecorateMixin(object):
                         _bot,
                         data["sessionWebhook"],
                         data[real_msgtype],
+                        data,
                         *args,
                         **kwargs
                     )
