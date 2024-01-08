@@ -176,7 +176,7 @@ class Bot(object):
         body = {"content": json.dumps(content)}
         return self.request("PATCH", url, json=body)
 
-    def reply(self, message_id, content, msg_type="text"):
+    def reply(self, message_id, content, msg_type="text", reply_in_thread=False):
         # https://open.feishu.cn/document/server-docs/im-v1/message/reply
         url = f"{self.host}/open-apis/im/v1/messages/{message_id}/reply"
         data = {
@@ -184,6 +184,7 @@ class Bot(object):
             "msg_type": getattr(content, "msg_type")
             if hasattr(content, "msg_type")
             else msg_type,
+            "reply_in_thread": reply_in_thread,
         }
         return self.post(url, json=data)
 
