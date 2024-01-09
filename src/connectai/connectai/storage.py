@@ -16,9 +16,9 @@ class BaseStorage(object):
 
 
 class DictStorage(BaseStorage):
-    def __init__(self, items=dict()):
+    def __init__(self, items=None):
         super().__init__()
-        self.data = items
+        self.data = items or dict()
 
     def set(self, key, value):
         self.data[key] = value
@@ -37,7 +37,7 @@ class DictStorage(BaseStorage):
 
 
 class ExpiredDictStorage(DictStorage):
-    def __init__(self, expire=3600, items=dict()):
+    def __init__(self, expire=3600, items=None):
         self.expire = expire
         super().__init__(items)
 

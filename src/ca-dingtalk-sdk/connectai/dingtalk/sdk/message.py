@@ -7,13 +7,13 @@ class DingtalkBaseMessage(Dict):
     msgtype = "unkown"
 
     def __init__(
-        self, atMobiles=list(), atUserIds=list(), isAtAll=False, at=True, **kwargs
+        self, atMobiles=None, atUserIds=None, isAtAll=False, at=True, **kwargs
     ):
         # actionCard/feedCard no need at.
         if at:
             kwargs["at"] = dict(
-                atMobiles=atMobiles,
-                atUserIds=atUserIds,
+                atMobiles=atMobiles or list(),
+                atUserIds=atUserIds or list(),
                 isAtAll=isAtAll,
             )
         super().__init__(msgtype=self.msgtype, **kwargs)
@@ -57,14 +57,14 @@ class DingDingActionCardMessage(DingtalkBaseMessage):
     msgtype = "actionCard"
 
     def __init__(
-        self, *btn, btns=list(), title="", text="", btnOrientation="0", **kwargs
+        self, *btn, btns=None, title="", text="", btnOrientation="0", **kwargs
     ):
         super().__init__(
             actionCard=dict(
                 title=title,
                 text=text,
                 btnOrientation=str(btnOrientation),
-                btns=btns + list(btn),
+                btns=(btns or list()) + list(btn),
             ),
             at=False,
         )
@@ -78,10 +78,10 @@ class DingtalkFeedCardLink(Dict):
 class DingtalkFeedCardMessage(DingtalkBaseMessage):
     msgtype = "feedCard"
 
-    def __init__(self, *link, links=list(), **kwargs):
+    def __init__(self, *link, links=None, **kwargs):
         super().__init__(
             feedCard=dict(
-                links=links + list(link),
+                links=(links or list()) + list(link),
             ),
             at=False,
         )

@@ -8,9 +8,9 @@ from connectai.dingtalk.sdk.mixin import BotMessageDecorateMixin
 
 class DingtalkServer(BotMessageDecorateMixin):
     def __init__(
-        self, *bot, bots=list(), prefix="/api/dingtalk", host="0.0.0.0", port=8888
+        self, *bot, bots=None, prefix="/api/dingtalk", host="0.0.0.0", port=8888
     ):
-        self.bots = list(bot) + bots
+        self.bots = list(bot) + (bots or list())
         self.bots_map = {b.app_id: b for b in self.bots}
         self.prefix = prefix
         self.host = host
