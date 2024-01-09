@@ -58,7 +58,7 @@ class Bot(object):
     def _access_token_by_name(self, name):
         # https://open.feishu.cn/document/ukTMukTMukTM/ukDNz4SO0MjL5QzM/auth-v3/auth/tenant_access_token_internal
         url = f"{self.host}/open-apis/auth/v3/{name}/internal"
-        result = self.post(
+        result = httpx.post(
             url,
             json={
                 "app_id": self.app_id,
@@ -106,8 +106,9 @@ class Bot(object):
     def app_access_token(self):
         return self.access_token_by_name("app_access_token")
 
-    def request(self, method, url, headers=dict(), **kwargs):
-        if "access_token" not in url and "Authorization" not in headers:
+    def request(self, method, url, headers=None, **kwargs):
+        headers = headers or dict()
+        if "Authorization" not in headers:
             headers["Authorization"] = "Bearer {}".format(self.tenant_access_token)
         return httpx.request(method, url, headers=headers, **kwargs)
 

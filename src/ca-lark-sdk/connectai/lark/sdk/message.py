@@ -88,12 +88,12 @@ class FeishuMessageDiv(Dict):
 # https://open.feishu.cn/document/common-capabilities/message-card/add-card-interaction/interactive-components/button
 class FeishuMessageButton(Dict):
     def __init__(
-        self, content="", tag="plain_text", value=dict(), type="default", **kwargs
+        self, content="", tag="plain_text", value=None, type="default", **kwargs
     ):
         super().__init__(
             tag="button",
             text=dict(tag=tag, content=content),
-            value=value,
+            value=value or dict(),
             type=type,
             **kwargs,
         )

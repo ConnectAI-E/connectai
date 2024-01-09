@@ -47,7 +47,8 @@ class Bot(object):
             token, expired = self._access_token
         return token
 
-    def request(self, method, url, headers=dict(), **kwargs):
+    def request(self, method, url, headers=None, **kwargs):
+        headers = headers or dict()
         headers["x-acs-dingtalk-access-token"] = self.access_token
         return httpx.request(method, url, headers=headers, **kwargs)
 

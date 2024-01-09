@@ -16,13 +16,13 @@ class Client(BotMessageDecorateMixin):
     def __init__(
         self,
         *bot,
-        bots=list(),
+        bots=None,
         server=WS_DINGTALK_PROXY_SERVER,
         protocol=WS_DINGTALK_PROXY_PROTOCOL,
         org_name="",
         org_passwd="",
     ):
-        self.bots = list(bot) + bots
+        self.bots = list(bot) + (bots or list())
         self.bots_map = {b.app_id: b for b in self.bots}
         self.server = server
         self.protocol = protocol
