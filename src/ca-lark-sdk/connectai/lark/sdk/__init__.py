@@ -1,4 +1,4 @@
 from .client import *
 from .message import *
 
-__version__ = "0.0.18"
+__version__ = "0.0.19"
