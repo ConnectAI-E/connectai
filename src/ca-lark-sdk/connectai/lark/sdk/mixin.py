@@ -75,7 +75,7 @@ class BotMessageDecorateMixin(object):
                                     )
                                     tenant_key = message_sender["tenant_key"]
                                     body = raw_message.pop("body")
-                                    message_type = raw_message.pop("msg_type")
+                                    msg_type = raw_message.pop("msg_type")
                                     raw_message = {
                                         "header": {
                                             "app_id": app_id,
@@ -87,7 +87,7 @@ class BotMessageDecorateMixin(object):
                                         "event": {
                                             "message": {
                                                 "content": json.loads(body["content"]),
-                                                "message_type": message_type,
+                                                "message_type": msg_type,
                                                 **raw_message,
                                             },
                                             "sender": {
