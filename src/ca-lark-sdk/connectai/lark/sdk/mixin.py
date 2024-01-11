@@ -60,7 +60,7 @@ class BotMessageDecorateMixin(object):
                         # try add raw_message when process card:action
                         if "open_message_id" in data:
                             messages = _bot.get(
-                                f"{bot.host}/open-apis/im/v1/messages/{message_id}"
+                                f"{_bot.host}/open-apis/im/v1/messages/{message_id}"
                             ).json()
                             items = messages.get("data", {}).get("items", [])
                             if len(items) > 0:
