@@ -59,12 +59,48 @@ class BotMessageDecorateMixin(object):
                         raw_message = data
                         # try add raw_message when process card:action
                         if "open_message_id" in data:
-                            messages = _bot.get(
-                                f"{_bot.host}/open-apis/im/v1/messages/{data['open_message_id']}"
-                            ).json()
-                            items = messages.get("data", {}).get("items", [])
-                            if len(items) > 0:
-                                raw_message = items[0]
+                            try:
+                                messages = _bot.get(
+                                    f"{_bot.host}/open-apis/im/v1/messages/{data['open_message_id']}"
+                                ).json()
+                                items = messages.get("data", {}).get("items", [])
+                                if len(items) > 0:
+                                    # mock event
+                                    raw_message = items[0]
+                                    message_sender = raw_message.pop("sender")
+                                    app_id = (
+                                        message_sender["id"]
+                                        if message_sender["sender_type"] == "app"
+                                        else ""
+                                    )
+                                    tenant_key = message_sender["tenant_key"]
+                                    body = raw_message.pop("body")
+                                    message_type = raw_message.pop("msg_type")
+                                    raw_message = {
+                                        "header": {
+                                            "app_id": app_id,
+                                            "tenant_key": tenant_key,
+                                            "event_type": event_type,
+                                            "token": data["token"],
+                                            "create_time": raw_message["create_time"],
+                                        },
+                                        "event": {
+                                            "message": {
+                                                "content": json.loads(body["content"]),
+                                                "message_type": message_type,
+                                                **raw_message,
+                                            },
+                                            "sender": {
+                                                "sender_id": {
+                                                    "open_id": data["open_id"],
+                                                    "user_id": data["user_id"],
+                                                },
+                                                **message_sender,
+                                            },
+                                        },
+                                    }
+                            except Exception as e:
+                                logging.error(e)
 
                         return method(
                             _bot,
