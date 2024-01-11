@@ -56,10 +56,21 @@ class BotMessageDecorateMixin(object):
                 if "action" in data:
                     # card event
                     if event_type and event_type == "card:action":
+                        raw_message = data
+                        # try add raw_message when process card:action
+                        if "open_message_id" in data:
+                            messages = _bot.get(
+                                f"{bot.host}/open-apis/im/v1/messages/{message_id}"
+                            ).json()
+                            items = messages.get("data", {}).get("items", [])
+                            if len(items) > 0:
+                                raw_message = items[0]
+
                         return method(
                             _bot,
                             data["token"],
                             data,
+                            raw_message,
                             *args,
                             **kwargs,
                         )
