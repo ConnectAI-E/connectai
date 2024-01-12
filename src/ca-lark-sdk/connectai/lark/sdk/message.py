@@ -21,6 +21,20 @@ class FeishuImageMessage(FeishuBaseMessage):
         super().__init__(image_key=image_key)
 
 
+class FeishuShareChatMessage(FeishuBaseMessage):
+    msg_type = "share_chat"
+
+    def __init__(self, chat_id=""):
+        super().__init__(chat_id=chat_id)
+
+
+class FeishuShareUserMessage(FeishuBaseMessage):
+    msg_type = "share_user"
+
+    def __init__(self, user_id=""):
+        super().__init__(user_id=user_id)
+
+
 class FeishuFileMessage(FeishuBaseMessage):
     msg_type = "file"
 
