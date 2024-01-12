@@ -110,6 +110,17 @@ class BotMessageDecorateMixin(object):
                             *args,
                             **kwargs,
                         )
+                elif "type" in data and data["type"] == "event_callback":
+                    _bot.tenant_key = data["event"]["tenant_key"]
+                    if event_type and event_type == data["event"]["type"]:
+                        return method(
+                            _bot,
+                            data.get("uuid", data.get("token")),
+                            data["event"],
+                            data,
+                            *args,
+                            **kwargs,
+                        )
                 elif "header" in data:
                     if "tenant_key" in data["header"] and isinstance(_bot, MarketBot):
                         _bot.tenant_key = data["header"]["tenant_key"]
