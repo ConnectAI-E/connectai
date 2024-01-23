@@ -79,19 +79,21 @@ class Bot(object):
 
     def access_token_by_name(self, name):
         key = f"{name}:{self.app_id}"
+        attr = f"_{name}"
         try:
             token, expired = json.loads(self.storage.get(key))
         except Exception as e:
             logging.debug("error to get %r from storage %r", name, e)
-            token, expired = getattr(self, f"_{name}")
+            token, expired = getattr(self, attr)
             try:
                 self.storage.set(key, json.dumps([token, expired]))
             except Exception as e:
                 logging.debug("error to save %r to storage %r", name, e)
         if not token or expired < time():
             # retry get_tenant_access_token
-            delattr(self, f"_{name}")
-            token, expired = getattr(self, f"_{name}")
+            if hasattr(self, attr):
+                delattr(self, attr)
+            token, expired = getattr(self, attr)
             try:
                 self.storage.set(key, json.dumps([token, expired]))
             except Exception as e:
