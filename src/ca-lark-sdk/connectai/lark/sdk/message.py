@@ -1,5 +1,5 @@
 import json
-from typing import Dict
+from typing import Dict, List
 
 
 # 以下为飞书消息
@@ -19,6 +19,48 @@ class FeishuImageMessage(FeishuBaseMessage):
 
     def __init__(self, image_key=""):
         super().__init__(image_key=image_key)
+
+
+class FeishuPostMessage(FeishuBaseMessage):
+    msg_type = "post"
+
+    def __init__(self, *content, title=""):
+        super().__init__(title=title, content=content)
+
+
+class FeishuPostMessageTag(Dict):
+    def __init__(self, tag="text", style=None, **kwargs):
+        super().__init__(tag=tag, style=style or list(), **kwargs)
+
+
+class FeishuPostMessageText(FeishuPostMessageTag):
+    def __init__(self, text="", style=None):
+        super().__init__(tag="text", text=text, style=style)
+
+
+class FeishuPostMessageA(FeishuPostMessageTag):
+    def __init__(self, text="", href="", style=None):
+        super().__init__(tag="a", text=text, href=href, style=style)
+
+
+class FeishuPostMessageAt(FeishuPostMessageTag):
+    def __init__(self, user_id="", style=None):
+        super().__init__(tag="at", user_id=user_id, style=style)
+
+
+class FeishuPostMessageImage(Dict):
+    def __init__(self, image_key=""):
+        super().__init__(tag="img", image_key=image_key)
+
+
+class FeishuPostMessageMedia(Dict):
+    def __init__(self, file_key="", image_key=""):
+        super().__init__(tag="media", file_key=file_key, image_key=image_key)
+
+
+class FeishuPostMessageEmotion(Dict):
+    def __init__(self, emoji_type=""):
+        super().__init__(tag="emotion", emoji_type=emoji_type)
 
 
 class FeishuShareChatMessage(FeishuBaseMessage):
