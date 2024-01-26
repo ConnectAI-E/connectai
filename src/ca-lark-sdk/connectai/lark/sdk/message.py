@@ -24,18 +24,21 @@ class FeishuImageMessage(FeishuBaseMessage):
 class FeishuPostMessage(FeishuBaseMessage):
     msg_type = "post"
 
-    def __init__(self, *content, title=""):
-        super().__init__(title=title, content=content)
+    def __init__(self, *content, title="", lang="zh_cn"):
+        super().__init__(**{lang: dict(title=title, content=list(content))})
 
 
 class FeishuPostMessageTag(Dict):
     def __init__(self, tag="text", style=None, **kwargs):
-        super().__init__(tag=tag, style=style or list(), **kwargs)
+        if style:
+            super().__init__(tag=tag, style=style, **kwargs)
+        else:
+            super().__init__(tag=tag, **kwargs)
 
 
 class FeishuPostMessageText(FeishuPostMessageTag):
-    def __init__(self, text="", style=None):
-        super().__init__(tag="text", text=text, style=style)
+    def __init__(self, text="", un_escape=False, style=None):
+        super().__init__(tag="text", text=text, un_escape=un_escape, style=style)
 
 
 class FeishuPostMessageA(FeishuPostMessageTag):
