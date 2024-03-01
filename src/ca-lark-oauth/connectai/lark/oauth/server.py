@@ -28,7 +28,21 @@ class Server(BotMessageDecorateMixin):
                 raise Exception("param error")
 
             def oauth_redirect():
+                print(dict(request.headers))
                 redirect_uri = request.base_url
+                # work with vscode port forward
+                forward_scheme = request.headers.get("X-Forwarded-Scheme", "")
+                if forward_scheme:
+                    forward_host = request.headers.get("X-Forwarded-Host", "")
+                    forward_port = request.headers.get("X-Forwarded-Port", "")
+                    replace_host = (
+                        forward_host
+                        if forward_port in ["443", "80"]
+                        else f"{forward_host}:{forward_port}"
+                    )
+                    host = request.headers.get("Host", "")
+                    redirect_uri = redirect_uri.replace("http", forward_scheme)
+                    redirect_uri = redirect_uri.replace(host, replace_host)
                 # scope = "contact:contact.base:readonly"
                 scope = ""
                 oauth_url = f"https://open.feishu.cn/open-apis/authen/v1/authorize?app_id={app_id or state}&redirect_uri={quote(redirect_uri)}&scope={scope}&state={app_id or state}"
@@ -67,6 +81,7 @@ class Server(BotMessageDecorateMixin):
                     if "user" in user_contact.get("data", {}) and user_info.get("data"):
                         user_info["data"].update(user_contact["data"]["user"])
                     if "open_id" in user_info.get("data", {}):
+                        user_info["data"].update(user_access_token=access["data"])
                         result = bot.process_message(
                             {
                                 "headers": {
