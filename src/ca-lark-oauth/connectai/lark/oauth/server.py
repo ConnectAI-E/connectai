@@ -28,7 +28,6 @@ class Server(BotMessageDecorateMixin):
                 raise Exception("param error")
 
             def oauth_redirect():
-                print(dict(request.headers))
                 redirect_uri = request.base_url
                 # work with vscode port forward
                 forward_scheme = request.headers.get("X-Forwarded-Scheme", "")
