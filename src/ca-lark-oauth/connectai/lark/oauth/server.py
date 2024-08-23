@@ -24,6 +24,8 @@ class Server(BotMessageDecorateMixin):
             app_id = request.args.get("app_id", default="", type=str)
             code = request.args.get("code", default="", type=str)
             state = request.args.get("state", default="", type=str)
+            # scope = "contact:contact.base:readonly"
+            scope = request.args.get("scope", default="", type=str)
             if not app_id and not state:
                 raise Exception("param error")
 
@@ -46,8 +48,6 @@ class Server(BotMessageDecorateMixin):
                     host = request.headers.get("Host", "")
                     redirect_uri = redirect_uri.replace("http", forward_scheme)
                     redirect_uri = redirect_uri.replace(host, replace_host)
-                # scope = "contact:contact.base:readonly"
-                scope = ""
                 oauth_url = f"{bot.host}/open-apis/authen/v1/authorize?app_id={app_id or state}&redirect_uri={quote(redirect_uri)}&scope={scope}&state={app_id or state}"
                 return redirect(oauth_url, code=302)
 
