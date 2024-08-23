@@ -27,6 +27,10 @@ class Server(BotMessageDecorateMixin):
             if not app_id and not state:
                 raise Exception("param error")
 
+            bot = self.get_bot(app_id or state)  # state=app_id
+            if not bot:
+                raise Exception("can not get bot {app_id or state}")
+
             def oauth_redirect():
                 redirect_uri = request.base_url
                 # work with vscode port forward
@@ -44,58 +48,56 @@ class Server(BotMessageDecorateMixin):
                     redirect_uri = redirect_uri.replace(host, replace_host)
                 # scope = "contact:contact.base:readonly"
                 scope = ""
-                oauth_url = f"https://open.feishu.cn/open-apis/authen/v1/authorize?app_id={app_id or state}&redirect_uri={quote(redirect_uri)}&scope={scope}&state={app_id or state}"
+                oauth_url = f"{bot.host}/open-apis/authen/v1/authorize?app_id={app_id or state}&redirect_uri={quote(redirect_uri)}&scope={scope}&state={app_id or state}"
                 return redirect(oauth_url, code=302)
 
             if code:
                 result = None
-                bot = self.get_bot(state)  # state=app_id
-                if bot:
-                    access = bot.post(
-                        f"{bot.host}/open-apis/authen/v1/oidc/access_token",
-                        json=dict(
-                            grant_type="authorization_code",
-                            code=code,
-                        ),
-                        headers={
-                            "Authorization": f"Bearer {bot.app_access_token}",
-                        },
+                access = bot.post(
+                    f"{bot.host}/open-apis/authen/v1/oidc/access_token",
+                    json=dict(
+                        grant_type="authorization_code",
+                        code=code,
+                    ),
+                    headers={
+                        "Authorization": f"Bearer {bot.app_access_token}",
+                    },
+                ).json()
+                if "data" not in access:
+                    return oauth_redirect()
+                user_info = bot.get(
+                    f"{bot.host}/open-apis/authen/v1/user_info",
+                    headers={
+                        "Authorization": f"Bearer {access['data']['access_token']}",
+                    },
+                ).json()
+                try:
+                    user_contact = bot.get(
+                        f"{bot.host}/open-apis/contact/v3/users/{user_info['data']['open_id']}?user_id_type=open_id",
                     ).json()
-                    if "data" not in access:
-                        return oauth_redirect()
-                    user_info = bot.get(
-                        f"{bot.host}/open-apis/authen/v1/user_info",
-                        headers={
-                            "Authorization": f"Bearer {access['data']['access_token']}",
-                        },
-                    ).json()
-                    try:
-                        user_contact = bot.get(
-                            f"{bot.host}/open-apis/contact/v3/users/{user_info['data']['open_id']}?user_id_type=open_id",
-                        ).json()
-                    except Exception as e:
-                        logging.error(e)
-                        user_contact = {}
+                except Exception as e:
+                    logging.error(e)
+                    user_contact = {}
 
-                    if "user" in user_contact.get("data", {}) and user_info.get("data"):
-                        user_info["data"].update(user_contact["data"]["user"])
-                    if "open_id" in user_info.get("data", {}):
-                        user_info["data"].update(user_access_token=access["data"])
-                        result = bot.process_message(
-                            {
-                                "headers": {
-                                    key.lower(): value
-                                    for key, value in request.headers.items()
-                                },
-                                "body": dict(
-                                    header=dict(
-                                        event_type="oauth:user_info",
-                                        event_id="placeholder",
-                                    ),
-                                    event=user_info.get("data", {}),
+                if "user" in user_contact.get("data", {}) and user_info.get("data"):
+                    user_info["data"].update(user_contact["data"]["user"])
+                if "open_id" in user_info.get("data", {}):
+                    user_info["data"].update(user_access_token=access["data"])
+                    result = bot.process_message(
+                        {
+                            "headers": {
+                                key.lower(): value
+                                for key, value in request.headers.items()
+                            },
+                            "body": dict(
+                                header=dict(
+                                    event_type="oauth:user_info",
+                                    event_id="placeholder",
                                 ),
-                            }
-                        )
+                                event=user_info.get("data", {}),
+                            ),
+                        }
+                    )
                 return make_response(
                     """
 <script>
